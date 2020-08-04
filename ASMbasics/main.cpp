@@ -72,6 +72,13 @@ extern "C" void addSIMDint();
 extern "C" void mulSIMDfloat();
 extern "C" void divSIMDdouble();
 
+extern "C" void CallACPPProcedure();
+
+extern "C" void PrintParameterMessage(int a, int b, int c, int d, int e, int f) 
+{
+	cout << "Parameters taken:" << f << endl;
+}
+
 int main()
 {
 	/* FOR x86 in-line asm
@@ -112,6 +119,8 @@ int main()
 	//mulSIMDfloat();
 
 	//divSIMDdouble();
+
+	//CallACPPProcedure();
 
 	cin.get();
 	return 0;

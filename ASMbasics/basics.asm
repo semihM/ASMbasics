@@ -1,4 +1,5 @@
 ;;;Define variables
+extrn PrintParameterMessage:proc ; Tell MASM there's an external procedure to be linked
 
 .data
 	;varname_for_memory_adress data_type data_value
@@ -359,6 +360,19 @@ gcd proc
 	
 gcd endp
 
+CallACPPProcedure proc			 ;Easy to use if no local variables used (which causes rsp to move around so access to parameters gets difficult)
+	sub rsp, 30h				 ;Allocate shadow space
+	mov ecx, 1					 ;first paramater to ecx
+	mov edx, 2					 ;second parameter to edx
+	mov r8d, 3					 ;third parameter to r8d
+	mov r9d, 4					 ;forth parameter to r9d
+	mov dword ptr [rsp + 20h], 5 ;since each parameter will take 8bytes, add 20h (or 32 or 40o) to stack pointer for 5th parameter
+	mov dword ptr [rsp + 28h], 6 ;add 28h (or 40 or 50o) for 6th parameter
+	call PrintParameterMessage	 ;call procedure in C++
+	add rsp, 30h				 ;Restore (dealloc) the stack
+	ret
+
+CallACPPProcedure endp
 
 
 end
