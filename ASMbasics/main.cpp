@@ -95,6 +95,8 @@ extern "C" bool DetectFeatureECX(char);
 extern "C" bool CheckMMXCapability();
 extern "C" void MMXCopy(char* a, char* b, int count);
 
+extern "C" void Absolute(short* arr, int count);
+
 int main()
 {	
 	/* FOR x86 in-line asm
@@ -173,6 +175,7 @@ int main()
 	}
 	*/
 
+	/*
 	if (!CheckMMXCapability())
 	{
 		cout << "Not capable of working with MMX!" << endl;
@@ -191,7 +194,19 @@ int main()
 		for (int i = 0; i < 19; i++) cout << (int)a[i] << " ";
 
 	}
+	*/
 
+	/*
+	short a[19] = { -1,-2,3,4,5,6,-7,-8,9,10,-11,12,-13,14,-15,16,17,-18,19 };
+
+	cout << "Old:" << endl;
+	for (int i = 0; i < 19; i++) cout << a[i] << " ";
+
+	Absolute(a, 19);
+
+	cout << endl << "New:" << endl;
+	for (int i = 0; i < 19; i++) cout << a[i] << " ";
+	*/
 
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();

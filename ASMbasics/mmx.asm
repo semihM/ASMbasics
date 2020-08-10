@@ -1,5 +1,57 @@
 .code 
 
+; ********** TRICKS **********
+COMMENT	@ ClearRegisterToZero
+
+pxor mmx, mmx
+pandn mmx, mmx
+pcmpgtb mmx,mmx ; OR pcmpgtw OR pcmpgtd
+
+@ ClearRegisterToZerotricks
+
+COMMENT	@ SetBitsOfRegisterOne
+
+pcmpeqb mmx,mmx ; OR pcmpeqw OR pcmpeqd
+
+@ SetBitsOfRegisterOne
+
+COMMENT @ Compliment
+
+pcmpeqb mmx,mmx ; mmx with all bits as 1
+pxor mmy, mmx   ; flip bits of mmy using mmx
+
+@ Compliment
+
+COMMENT @ ComparisonOperations
+; mmx : first vector, mmy : second vector, mmz : temporary vector
+
+; != Not Equal to
+	pcmpeqb mmx, mmy ; find equal to
+	pcmpeqb mmz, mmz ; set mmz to all 1s
+	pxor mmx, mmz    ; compliment mmx
+
+; >= Greater than or Equal to
+	movq mmz, mmx
+	pcmpgtb mmx, mmy ; find > in mmx
+	pcmpeqb mmz, mmy ; find = in mmx
+	por mmx, mmz     ; OR them together
+
+; < Less than
+	movq mmz, mmx
+	pcmpeqb mmz, mmy ; find =
+	pcmpgtb mmx, mmy ; find >
+	por mmx, mmz	 ; OR them together
+	pcmpeqb mmz, mmz
+	pandn mmx, mmz   ; NOT the result
+
+; <= Less than or Equal to
+	movq mmz, mmy	  
+	pcmpgtb mmz, mmx ; Do the NOT of > by swapping operands
+	movq mmx, mmz
+@ ComparisonOperations
+
+; ********** END OF TRICKS ************
+
 CheckMMXCapability proc
 	; bool CheckMMXCapability()
 	push rbx ; save rbx
@@ -81,5 +133,65 @@ MMXCopy proc
 		ret
 
 MMXCopy endp
+
+Absolute proc
+	; void Absolute(short *arr=rcx, int count=edx)
+
+	cmp edx, 0   ; check if given count is not positive
+	jle Finished
+
+	pcmpeqw mm5, mm5  ; mm5 all ones
+	pxor mm6, mm6	  ; mm6 all zeros
+
+	pcmpeqw mm4,mm4   ; mm4 all ones 
+	psrlw mm4, 15     ; shift right logical to get 4 words with 1 as highest bit
+
+	mov eax, edx    ; save copy of edx
+	shr edx, 2      ; divide edx by 4 since there are 4 words per iteration
+	jz DealWithResiduals ; if edx becomes 0
+
+	MainLoop:
+		movq mm0, qword ptr [rcx] ; get the value
+		movq mm1, mm0			  ; keep a copy
+
+		pcmpgtw mm0, mm6		  ; get positive values
+		movq mm7, mm0			  ; keep them in mm7
+		pand mm0, mm1			  ; mask negatives, only posiives left in mm0
+		pxor mm7, mm5		      ; compliment mm7, now it has negative values' bits as FFFF
+		pand mm7, mm1			  ; mask positives, only negatives left in mm7
+		pxor mm7, mm5			  ; one's compliment, flip all the bits
+		paddw mm7, mm4			  ; need to add 1 to all because of the previous operation
+		por mm0, mm7			  ; replace zeros in mm0 with new absolute values from mm7
+
+		movq qword ptr [rcx], mm0  ; replace with the absolute value back
+		
+		add rcx, 8
+		dec edx
+		jnz MainLoop
+
+
+	DealWithResiduals:
+		and eax, 11b ; check for remainder of count/4 will
+		jz Finished
+
+	ResidualsLoop:
+		mov dx, word ptr [rcx]
+
+		mov r8w, dx
+		neg r8w
+		cmp dx, 0
+		cmovl dx, r8w
+		
+		mov word ptr [rcx], dx
+
+		add rcx, 2
+		dec eax
+		jnz ResidualsLoop
+
+	Finished:
+		emms ; Restore FPU state
+		ret
+
+Absolute endp
 
 end
