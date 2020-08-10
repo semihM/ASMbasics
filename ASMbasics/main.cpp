@@ -79,8 +79,13 @@ extern "C" void PrintParameterMessage(int a, int b, int c, int d, int e, int f)
 	cout << "Parameters taken:" << f << endl;
 }
 
+extern "C" int FindMax(int* arr, int count);
+
+
 int main()
-{
+{	
+	//int i[5] = { 1,4,2,5,0 };
+
 	/* FOR x86 in-line asm
 	int i = 0;
 	_asm {
@@ -121,6 +126,8 @@ int main()
 	//divSIMDdouble();
 
 	//CallACPPProcedure();
+
+	//FindMax(i, 5);
 
 	cin.get();
 	return 0;

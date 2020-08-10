@@ -374,6 +374,29 @@ CallACPPProcedure proc			 ;Easy to use if no local variables used (which causes 
 
 CallACPPProcedure endp
 
+FindMax proc
+	; int FindMax(int *array = rcx, int count = edx)
+
+	cmp edx, 1                ; Check count is positive
+	mov eax, 80000000h        ; Set eax to lowest int as an error
+	jl Finished				  ; Done if count is not positive
+
+	mov eax, dword ptr [rcx]  ; Read first value
+	je Finished				  ; Done if it was the only value
+	dec edx					  ; dec the counter
+	add rcx, 4				  ; move to next int
+
+	MainLoop:
+		cmp dword ptr [rcx], eax   ; compare to last int
+		cmovg eax, dword ptr [rcx] ; update if it is greater
+		add rcx, 4				   ; move to next int
+		dec edx					   ; dec the counter
+		jnz MainLoop               ; keep looping if count isn't zero
+
+	Finished:
+		ret
+
+FindMax endp
 
 end
 
