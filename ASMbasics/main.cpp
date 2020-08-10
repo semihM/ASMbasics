@@ -72,6 +72,10 @@ extern "C" void addSIMDint();
 extern "C" void mulSIMDfloat();
 extern "C" void divSIMDdouble();
 
+
+////////////  PRACTICAL x64 TUTORIAL STUFF  /////////////
+
+
 extern "C" void CallACPPProcedure();
 
 extern "C" void PrintParameterMessage(int a, int b, int c, int d, int e, int f) 
@@ -81,6 +85,12 @@ extern "C" void PrintParameterMessage(int a, int b, int c, int d, int e, int f)
 
 extern "C" int FindMax(int* arr, int count);
 
+extern "C" bool GetCPUIDSupport();
+extern "C" char* GetVendorString();
+extern "C" int GetLargestStandardFunction();
+extern "C" int GetLogicalProcessorCount();
+extern "C" bool DetectFeatureEDX(char);
+extern "C" bool DetectFeatureECX(char);
 
 int main()
 {	
@@ -125,10 +135,41 @@ int main()
 
 	//divSIMDdouble();
 
+
+
+	////////////  PRACTICAL x64 TUTORIAL STUFF  /////////////
+
 	//CallACPPProcedure();
 
 	//FindMax(i, 5);
 
+	if (!GetCPUIDSupport()) 
+	{
+		cout << "CPU doesn't know CPUID" << endl;
+	}
+	else 
+	{
+		cout << "CPUID is known!" << endl;
+		cout << endl << "Vendor String : " << GetVendorString() << endl;
+		cout << endl << "Largest standard function: " << GetLargestStandardFunction() << endl;
+		cout << endl << "Logical Processor Count: " << GetLogicalProcessorCount() << endl;
+
+		cout << endl << "Supported Features from CPUID_0000_0001_EDX" << endl;
+		for (int feat = 0; feat < 32; feat++) 
+		{
+			if (DetectFeatureEDX(feat)) cout << " " << feat;
+		}
+		cout << endl;
+
+		cout << endl << "Supported Features from CPUID_0000_0001_ECX" << endl;
+		for (int feat = 0; feat < 32; feat++)
+		{
+			if (DetectFeatureECX(feat)) cout << " " << feat;
+		}
+		cout << endl;
+	}
+
+	cout << endl << "Press enter to quit..." << endl;
 	cin.get();
 	return 0;
 }

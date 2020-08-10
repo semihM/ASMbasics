@@ -35,5 +35,8 @@
     <MASM Include="main.asm">
       <Filter>asm x64 as main</Filter>
     </MASM>
+    <MASM Include="cpuid.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
