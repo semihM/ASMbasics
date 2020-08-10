@@ -38,5 +38,8 @@
     <MASM Include="cpuid.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="mmx.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

@@ -92,10 +92,11 @@ extern "C" int GetLogicalProcessorCount();
 extern "C" bool DetectFeatureEDX(char);
 extern "C" bool DetectFeatureECX(char);
 
+extern "C" bool CheckMMXCapability();
+extern "C" void MMXCopy(char* a, char* b, int count);
+
 int main()
 {	
-	//int i[5] = { 1,4,2,5,0 };
-
 	/* FOR x86 in-line asm
 	int i = 0;
 	_asm {
@@ -141,8 +142,10 @@ int main()
 
 	//CallACPPProcedure();
 
+	//int i[5] = { 1,4,2,5,0 };
 	//FindMax(i, 5);
 
+	/*
 	if (!GetCPUIDSupport()) 
 	{
 		cout << "CPU doesn't know CPUID" << endl;
@@ -168,6 +171,27 @@ int main()
 		}
 		cout << endl;
 	}
+	*/
+
+	if (!CheckMMXCapability())
+	{
+		cout << "Not capable of working with MMX!" << endl;
+	}
+	else 
+	{	
+		char a[19] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+		char b[19] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19 };
+		
+		cout << "Old:" << endl;
+		for (int i = 0; i < 19; i++) cout << (int)a[i] << " ";
+		
+		MMXCopy(a, b, 19);
+
+		cout << endl << "New:" << endl;
+		for (int i = 0; i < 19; i++) cout << (int)a[i] << " ";
+
+	}
+
 
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();

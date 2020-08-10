@@ -151,6 +151,7 @@
       <FileType>Document</FileType>
     </MASM>
     <MASM Include="cpuid.asm" />
+    <MASM Include="mmx.asm" />
     <MASM Include="sse.asm">
       <FileType>Document</FileType>
     </MASM>
