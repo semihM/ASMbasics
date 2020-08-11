@@ -144,6 +144,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="alloc.asm" />
     <MASM Include="basics.asm">
       <FileType>Document</FileType>
     </MASM>

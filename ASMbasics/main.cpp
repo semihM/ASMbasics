@@ -97,6 +97,9 @@ extern "C" void MMXCopy(char* a, char* b, int count);
 
 extern "C" void Absolute(short* arr, int count);
 
+extern "C" void Allocate();
+extern "C" void Deallocate();
+
 int main()
 {	
 	/* FOR x86 in-line asm
@@ -206,6 +209,11 @@ int main()
 
 	cout << endl << "New:" << endl;
 	for (int i = 0; i < 19; i++) cout << a[i] << " ";
+	*/
+	
+	/*
+	Allocate();
+	Deallocate();
 	*/
 
 	cout << endl << "Press enter to quit..." << endl;

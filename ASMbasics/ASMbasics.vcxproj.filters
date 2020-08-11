@@ -41,5 +41,8 @@
     <MASM Include="mmx.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="alloc.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
