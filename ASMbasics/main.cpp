@@ -73,6 +73,10 @@ extern "C" void mulSIMDfloat();
 extern "C" void divSIMDdouble();
 
 
+//////////// FROM THE BOOK ///////////////
+
+extern "C" bool IsOdd(int num);
+
 ////////////  PRACTICAL x64 TUTORIAL STUFF  /////////////
 
 
@@ -141,7 +145,9 @@ int main()
 
 	//divSIMDdouble();
 
+	////////////  FROM THE BOOK  /////////////
 
+	cout << IsOdd(3) << "," << IsOdd(22) << endl;
 
 	////////////  PRACTICAL x64 TUTORIAL STUFF  /////////////
 

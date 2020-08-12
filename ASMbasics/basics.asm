@@ -398,5 +398,25 @@ FindMax proc
 
 FindMax endp
 
+IsOdd proc
+	; bool IsOdd(int num=ecx)
+
+	COMMENT @ AsBinary @
+
+	db  10000011b, 11100001b, 00000001b,  ; and ecx, 1
+		10001011b, 11000001b,			  ; mov eax, ecx
+		11000011b						  ; ret
+	
+
+	COMMENT @ AsHex
+
+	db	83h, 0E1h, 01h,    ; and ecx, 1
+		8Bh, 0C1h,         ; mov eax, ecx
+		0C3h			   ; ret
+
+	@ AsHex
+
+IsOdd endp
+
 end
 
