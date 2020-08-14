@@ -52,6 +52,20 @@ _declspec(align(16)) struct Point
 };
 #pragma pack (pop)
 
+
+#pragma pack(push,1)
+class class_Vector
+{
+	float x, y;
+public:
+	class_Vector(float x, float y);
+	~class_Vector();
+	float GetX();
+	float GetY();
+};
+#pragma pack (pop)
+
+
 extern "C" int testfun();
 extern "C" int arithmetictest();
 extern "C" int booltest();
@@ -233,11 +247,15 @@ int main()
 	Deallocate();
 	*/
 	
+	/*
 	struct Point p1 = { 100,100 };
 	struct Point p2 = { 200,200 };
 	cout << "Dist: " << Distance(&p1, &p2) << endl;
-
-
+	*/
+	
+	class_Vector v1(3.0f, 4.0f);
+	cout << "x:" << v1.GetX() << ", " << "y:" << v1.GetY() << endl;
+	
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();
 	return 0;

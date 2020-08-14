@@ -34,6 +34,11 @@ include pointstruct.inc
 
 	pp myunion { 0ffffffffh } ; create a myunion with value small 'ff'
 
+	class_Vector struc
+		x real4 ?
+		y real4 ?
+	class_Vector ends
+
 .code
 
 acctoclass proc 
@@ -454,5 +459,36 @@ Distance proc
 
 Distance endp
 
+;/////////////////// class_Vector methods ///////////////////
+
+??0class_Vector@@QEAA@MM@Z proc
+	;class_Vector(float x, float y)
+	movss dword ptr [rcx].class_Vector.x, xmm1
+	movss dword ptr [rcx].class_Vector.y, xmm2
+
+	mov rax, rcx ; return pointer to the new object in rax
+
+	ret
+??0class_Vector@@QEAA@MM@Z endp
+
+??1class_Vector@@QEAA@XZ proc
+	;~class_Vector
+
+	ret
+??1class_Vector@@QEAA@XZ endp
+
+?GetX@class_Vector@@QEAAMXZ proc
+	;class_Vector.GetX()
+	movss xmm0, dword ptr [rcx].class_Vector.x
+	ret
+?GetX@class_Vector@@QEAAMXZ endp
+
+?GetY@class_Vector@@QEAAMXZ proc
+	;class_Vector.GetY()
+	movss xmm0, dword ptr [rcx].class_Vector.y
+	ret
+?GetY@class_Vector@@QEAAMXZ endp
+
+; /////////////////// ///////////////////
 end
 
