@@ -1,6 +1,5 @@
 ;;;Define variables
 extrn PrintParameterMessage:proc ; Tell MASM there's an external procedure to be linked
-include pointstruct.inc
 
 .data
 	;varname_for_memory_adress data_type data_value
@@ -33,11 +32,6 @@ include pointstruct.inc
 	myunion ends
 
 	pp myunion { 0ffffffffh } ; create a myunion with value small 'ff'
-
-	class_Vector struc
-		x real4 ?
-		y real4 ?
-	class_Vector ends
 
 .code
 
@@ -424,71 +418,5 @@ IsOdd proc
 
 IsOdd endp
 
-Distance proc
-	;double Distance(Point *p1 = rcx, Point *p2 = rdx)
-
-	COMMENT @ CheesyWay @
-
-	movapd xmm0, xmmword ptr [rcx]
-
-	subpd xmm0, xmmword ptr [rdx]
-	mulpd xmm0,xmm0
-
-	haddpd xmm0,xmm0
-	sqrtpd xmm0,xmm0
-
-	ret
-
-	;@ CheesyWay
-
-	COMMENT @ ClassicWay @
-
-	movsd xmm0, [rcx].Point.x
-	movsd xmm1, [rcx].Point.y
-
-	subsd xmm0, [rdx].Point.x
-	subsd xmm1, [rdx].Point.y
-
-	mulsd xmm0, xmm0
-	mulsd xmm1, xmm1
-
-	addsd xmm0, xmm1
-	sqrtsd xmm0, xmm0
-	
-	ret
-
-Distance endp
-
-;/////////////////// class_Vector methods ///////////////////
-
-??0class_Vector@@QEAA@MM@Z proc
-	;class_Vector(float x, float y)
-	movss dword ptr [rcx].class_Vector.x, xmm1
-	movss dword ptr [rcx].class_Vector.y, xmm2
-
-	mov rax, rcx ; return pointer to the new object in rax
-
-	ret
-??0class_Vector@@QEAA@MM@Z endp
-
-??1class_Vector@@QEAA@XZ proc
-	;~class_Vector
-
-	ret
-??1class_Vector@@QEAA@XZ endp
-
-?GetX@class_Vector@@QEAAMXZ proc
-	;class_Vector.GetX()
-	movss xmm0, dword ptr [rcx].class_Vector.x
-	ret
-?GetX@class_Vector@@QEAAMXZ endp
-
-?GetY@class_Vector@@QEAAMXZ proc
-	;class_Vector.GetY()
-	movss xmm0, dword ptr [rcx].class_Vector.y
-	ret
-?GetY@class_Vector@@QEAAMXZ endp
-
-; /////////////////// ///////////////////
 end
 
