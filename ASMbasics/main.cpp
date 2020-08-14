@@ -253,8 +253,11 @@ int main()
 	cout << "Dist: " << Distance(&p1, &p2) << endl;
 	*/
 	
+	/*
 	class_Vector v1(3.0f, 4.0f);
 	cout << "x:" << v1.GetX() << ", " << "y:" << v1.GetY() << endl;
+	*/
+	
 	
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();
