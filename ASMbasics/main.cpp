@@ -43,6 +43,15 @@ void printbinary(int i)
 	cout << endl;
 }
 
+#pragma pack(push,1)
+_declspec(align(16)) struct Point 
+{ 
+	double x; 
+	double y; 
+
+};
+#pragma pack (pop)
+
 extern "C" int testfun();
 extern "C" int arithmetictest();
 extern "C" int booltest();
@@ -104,6 +113,8 @@ extern "C" void Absolute(short* arr, int count);
 extern "C" void Allocate();
 extern "C" void Deallocate();
 
+extern "C" double Distance(Point * p1, Point * p2);
+
 int main()
 {	
 	/* FOR x86 in-line asm
@@ -147,7 +158,7 @@ int main()
 
 	////////////  FROM THE BOOK  /////////////
 
-	cout << IsOdd(3) << "," << IsOdd(22) << endl;
+	//cout << IsOdd(3) << "," << IsOdd(22) << endl;
 
 	////////////  PRACTICAL x64 TUTORIAL STUFF  /////////////
 
@@ -221,6 +232,11 @@ int main()
 	Allocate();
 	Deallocate();
 	*/
+	
+	struct Point p1 = { 100,100 };
+	struct Point p2 = { 200,200 };
+	cout << "Dist: " << Distance(&p1, &p2) << endl;
+
 
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();

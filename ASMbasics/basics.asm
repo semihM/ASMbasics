@@ -1,5 +1,6 @@
 ;;;Define variables
 extrn PrintParameterMessage:proc ; Tell MASM there's an external procedure to be linked
+include pointstruct.inc
 
 .data
 	;varname_for_memory_adress data_type data_value
@@ -417,6 +418,41 @@ IsOdd proc
 	@ AsHex
 
 IsOdd endp
+
+Distance proc
+	;double Distance(Point *p1 = rcx, Point *p2 = rdx)
+
+	COMMENT @ CheesyWay @
+
+	movapd xmm0, xmmword ptr [rcx]
+
+	subpd xmm0, xmmword ptr [rdx]
+	mulpd xmm0,xmm0
+
+	haddpd xmm0,xmm0
+	sqrtpd xmm0,xmm0
+
+	ret
+
+	;@ CheesyWay
+
+	COMMENT @ ClassicWay @
+
+	movsd xmm0, [rcx].Point.x
+	movsd xmm1, [rcx].Point.y
+
+	subsd xmm0, [rdx].Point.x
+	subsd xmm1, [rdx].Point.y
+
+	mulsd xmm0, xmm0
+	mulsd xmm1, xmm1
+
+	addsd xmm0, xmm1
+	sqrtsd xmm0, xmm0
+	
+	ret
+
+Distance endp
 
 end
 
