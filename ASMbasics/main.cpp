@@ -112,6 +112,7 @@ extern "C" void PrintParameterMessage(int a, int b, int c, int d, int e, int f)
 
 extern "C" int FindMax(int* arr, int count);
 
+//////////////////  CPUID SSE  //////////////////
 extern "C" bool GetCPUIDSupport();
 extern "C" char* GetVendorString();
 extern "C" int GetLargestStandardFunction();
@@ -128,6 +129,9 @@ extern "C" void Allocate();
 extern "C" void Deallocate();
 
 extern "C" double Distance(Point * p1, Point * p2);
+
+//////////////////  CPUID AVX  //////////////////
+extern "C" bool GetAVXSupport();
 
 int main()
 {	
@@ -258,6 +262,10 @@ int main()
 	cout << "x:" << v1.GetX() << ", " << "y:" << v1.GetY() << endl;
 	*/
 	
+	/*
+	if (GetAVXSupport()) cout << "AVX is supported!" << endl;
+	else cout << "AVX is NOT supported :(" << endl;
+	*/
 	
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();

@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="alloc.asm" />
+    <MASM Include="avx.asm" />
     <MASM Include="basics.asm">
       <FileType>Document</FileType>
     </MASM>

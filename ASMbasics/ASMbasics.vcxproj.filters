@@ -44,6 +44,9 @@
     <MASM Include="alloc.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="avx.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="pointstruct.inc">
