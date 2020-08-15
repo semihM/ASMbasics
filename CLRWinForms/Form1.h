@@ -26,6 +26,14 @@ namespace CppCLRWinformsProjekt {
 		static double cppTotal = 0.0;
 		static double asmCount = 0.0;
 		static double asmTotal = 0.0;
+		static double negASMCount = 0.0;
+	private: System::Windows::Forms::Label^ brightnessLabel;
+	private: System::Windows::Forms::Label^ optionsLabel;
+	public:
+
+	public:
+		static double negASMTotal = 0.0;
+		   
 
 		void AdjustBrightness(unsigned char* bmp, short amount)
 		{
@@ -43,7 +51,7 @@ namespace CppCLRWinformsProjekt {
 		}
 
 		//Make a copy of the original image
-		void SaveOriginalImage(System::Drawing::Bitmap ^bmp)
+		void SaveOriginalImage(System::Drawing::Bitmap^ bmp)
 		{
 			ClearOriginalImage();
 
@@ -58,7 +66,7 @@ namespace CppCLRWinformsProjekt {
 
 			unsigned char* p = (unsigned char*)bmpData->Scan0.ToPointer();
 
-			for (int i = 0; i < imgSizeInBytes; i++) 
+			for (int i = 0; i < imgSizeInBytes; i++)
 			{
 				bmpOriginal[i] = *p++;
 			}
@@ -92,167 +100,234 @@ namespace CppCLRWinformsProjekt {
 
 	private: System::Windows::Forms::OpenFileDialog^ dlgOpen;
 
-	private: System::ComponentModel::Container ^components;
-
 	private: System::Windows::Forms::Label^ ASMLabel;
 	private: System::Windows::Forms::TrackBar^ ASMtrackbar;
 
-#pragma region Windows Form Designer generated code
-		/// <summary>
-		/// Erforderliche Methode für die Designerunterstützung.
-		/// Der Inhalt der Methode darf nicht mit dem Code-Editor geändert werden.
-		/// </summary>
-		void InitializeComponent(void)
-		{
-			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
-			this->fileToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->pictureBoxImg = (gcnew System::Windows::Forms::PictureBox());
-			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
-			this->avgbright = (gcnew System::Windows::Forms::Label());
-			this->dlgOpen = (gcnew System::Windows::Forms::OpenFileDialog());
-			this->ASMLabel = (gcnew System::Windows::Forms::Label());
-			this->ASMtrackbar = (gcnew System::Windows::Forms::TrackBar());
-			this->menuStrip1->SuspendLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ASMtrackbar))->BeginInit();
-			this->SuspendLayout();
-			// 
-			// menuStrip1
-			// 
-			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->fileToolStripMenuItem });
-			this->menuStrip1->Location = System::Drawing::Point(0, 0);
-			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(785, 24);
-			this->menuStrip1->TabIndex = 0;
-			this->menuStrip1->Text = L"menuStrip1";
-			this->menuStrip1->ItemClicked += gcnew System::Windows::Forms::ToolStripItemClickedEventHandler(this, &Form1::menuStrip1_ItemClicked);
-			// 
-			// fileToolStripMenuItem
-			// 
-			this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
-				this->openToolStripMenuItem,
-					this->exitToolStripMenuItem
-			});
-			this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
-			this->fileToolStripMenuItem->Size = System::Drawing::Size(37, 20);
-			this->fileToolStripMenuItem->Text = L"File";
-			// 
-			// openToolStripMenuItem
-			// 
-			this->openToolStripMenuItem->Name = L"openToolStripMenuItem";
-			this->openToolStripMenuItem->Size = System::Drawing::Size(103, 22);
-			this->openToolStripMenuItem->Text = L"&Open";
-			this->openToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::openToolStripMenuItem_Click);
-			// 
-			// exitToolStripMenuItem
-			// 
-			this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			this->exitToolStripMenuItem->Size = System::Drawing::Size(103, 22);
-			this->exitToolStripMenuItem->Text = L"&Exit";
-			this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::exitToolStripMenuItem_Click);
-			// 
-			// pictureBoxImg
-			// 
-			this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
-				| System::Windows::Forms::AnchorStyles::Left)
-				| System::Windows::Forms::AnchorStyles::Right));
-			this->pictureBoxImg->BackColor = System::Drawing::SystemColors::Control;
-			this->pictureBoxImg->Location = System::Drawing::Point(12, 27);
-			this->pictureBoxImg->Name = L"pictureBoxImg";
-			this->pictureBoxImg->Size = System::Drawing::Size(759, 349);
-			this->pictureBoxImg->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
-			this->pictureBoxImg->TabIndex = 1;
-			this->pictureBoxImg->TabStop = false;
-			// 
-			// trackBar1
-			// 
-			this->trackBar1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
-				| System::Windows::Forms::AnchorStyles::Right));
-			this->trackBar1->BackColor = System::Drawing::SystemColors::ControlDarkDark;
-			this->trackBar1->Enabled = false;
-			this->trackBar1->Location = System::Drawing::Point(12, 475);
-			this->trackBar1->Maximum = 255;
-			this->trackBar1->Minimum = -255;
-			this->trackBar1->Name = L"trackBar1";
-			this->trackBar1->Size = System::Drawing::Size(759, 45);
-			this->trackBar1->TabIndex = 2;
-			this->trackBar1->TickFrequency = 16;
-			this->trackBar1->Scroll += gcnew System::EventHandler(this, &Form1::trackBar1_Scroll);
-			// 
-			// avgbright
-			// 
-			this->avgbright->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
-			this->avgbright->AutoSize = true;
-			this->avgbright->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
-			this->avgbright->Location = System::Drawing::Point(12, 459);
-			this->avgbright->Name = L"avgbright";
-			this->avgbright->Size = System::Drawing::Size(51, 13);
-			this->avgbright->TabIndex = 3;
-			this->avgbright->Text = L"C++ AVG";
-			this->avgbright->Click += gcnew System::EventHandler(this, &Form1::label1_Click);
-			// 
-			// dlgOpen
-			// 
-			this->dlgOpen->FileName = L"openFileDialog1";
-			this->dlgOpen->Filter = L"JPEG|*.jpg|Bitmap|*.bmp|All Files|*.*";
-			// 
-			// ASMLabel
-			// 
-			this->ASMLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
-			this->ASMLabel->AutoSize = true;
-			this->ASMLabel->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
-			this->ASMLabel->Location = System::Drawing::Point(12, 384);
-			this->ASMLabel->Name = L"ASMLabel";
-			this->ASMLabel->Size = System::Drawing::Size(55, 13);
-			this->ASMLabel->TabIndex = 5;
-			this->ASMLabel->Text = L"ASM AVG";
-			// 
-			// ASMtrackbar
-			// 
-			this->ASMtrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
-				| System::Windows::Forms::AnchorStyles::Right));
-			this->ASMtrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
-			this->ASMtrackbar->Enabled = false;
-			this->ASMtrackbar->Location = System::Drawing::Point(12, 400);
-			this->ASMtrackbar->Maximum = 255;
-			this->ASMtrackbar->Minimum = -255;
-			this->ASMtrackbar->Name = L"ASMtrackbar";
-			this->ASMtrackbar->Size = System::Drawing::Size(759, 45);
-			this->ASMtrackbar->TabIndex = 4;
-			this->ASMtrackbar->TickFrequency = 16;
-			this->ASMtrackbar->Scroll += gcnew System::EventHandler(this, &Form1::ASMtrackbar_Scroll);
-			// 
-			// Form1
-			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
-			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->BackColor = System::Drawing::SystemColors::ButtonShadow;
-			this->ClientSize = System::Drawing::Size(785, 527);
-			this->Controls->Add(this->ASMLabel);
-			this->Controls->Add(this->ASMtrackbar);
-			this->Controls->Add(this->avgbright);
-			this->Controls->Add(this->trackBar1);
-			this->Controls->Add(this->pictureBoxImg);
-			this->Controls->Add(this->menuStrip1);
-			this->MainMenuStrip = this->menuStrip1;
-			this->Name = L"Form1";
-			this->Text = L"Form1";
-			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Form1::Form1_FormClosing);
-			this->Load += gcnew System::EventHandler(this, &Form1::Form1_Load);
-			this->menuStrip1->ResumeLayout(false);
-			this->menuStrip1->PerformLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ASMtrackbar))->EndInit();
-			this->ResumeLayout(false);
-			this->PerformLayout();
+	private: System::Windows::Forms::CheckBox^ negativeImg;
 
-		}
+	private: System::Windows::Forms::Label^ negativeASMLabel;
+
+	private: System::ComponentModel::Container^ components;
+
+#pragma region Windows Form Designer generated code
+		   /// <summary>
+		   /// Erforderliche Methode für die Designerunterstützung.
+		   /// Der Inhalt der Methode darf nicht mit dem Code-Editor geändert werden.
+		   /// </summary>
+		   void InitializeComponent(void)
+		   {
+			   this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
+			   this->fileToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			   this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			   this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			   this->pictureBoxImg = (gcnew System::Windows::Forms::PictureBox());
+			   this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
+			   this->avgbright = (gcnew System::Windows::Forms::Label());
+			   this->dlgOpen = (gcnew System::Windows::Forms::OpenFileDialog());
+			   this->ASMLabel = (gcnew System::Windows::Forms::Label());
+			   this->ASMtrackbar = (gcnew System::Windows::Forms::TrackBar());
+			   this->negativeImg = (gcnew System::Windows::Forms::CheckBox());
+			   this->negativeASMLabel = (gcnew System::Windows::Forms::Label());
+			   this->brightnessLabel = (gcnew System::Windows::Forms::Label());
+			   this->optionsLabel = (gcnew System::Windows::Forms::Label());
+			   this->menuStrip1->SuspendLayout();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->BeginInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ASMtrackbar))->BeginInit();
+			   this->SuspendLayout();
+			   // 
+			   // menuStrip1
+			   // 
+			   this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->fileToolStripMenuItem });
+			   this->menuStrip1->Location = System::Drawing::Point(0, 0);
+			   this->menuStrip1->Name = L"menuStrip1";
+			   this->menuStrip1->Size = System::Drawing::Size(693, 24);
+			   this->menuStrip1->TabIndex = 0;
+			   this->menuStrip1->Text = L"menuStrip1";
+			   this->menuStrip1->ItemClicked += gcnew System::Windows::Forms::ToolStripItemClickedEventHandler(this, &Form1::menuStrip1_ItemClicked);
+			   // 
+			   // fileToolStripMenuItem
+			   // 
+			   this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				   this->openToolStripMenuItem,
+					   this->exitToolStripMenuItem
+			   });
+			   this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
+			   this->fileToolStripMenuItem->Size = System::Drawing::Size(37, 20);
+			   this->fileToolStripMenuItem->Text = L"File";
+			   // 
+			   // openToolStripMenuItem
+			   // 
+			   this->openToolStripMenuItem->Name = L"openToolStripMenuItem";
+			   this->openToolStripMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->openToolStripMenuItem->Text = L"&Open";
+			   this->openToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::openToolStripMenuItem_Click);
+			   // 
+			   // exitToolStripMenuItem
+			   // 
+			   this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
+			   this->exitToolStripMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->exitToolStripMenuItem->Text = L"&Exit";
+			   this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::exitToolStripMenuItem_Click);
+			   // 
+			   // pictureBoxImg
+			   // 
+			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+				   | System::Windows::Forms::AnchorStyles::Left)
+				   | System::Windows::Forms::AnchorStyles::Right));
+			   this->pictureBoxImg->BackColor = System::Drawing::SystemColors::Control;
+			   this->pictureBoxImg->Location = System::Drawing::Point(12, 27);
+			   this->pictureBoxImg->Name = L"pictureBoxImg";
+			   this->pictureBoxImg->Size = System::Drawing::Size(667, 363);
+			   this->pictureBoxImg->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
+			   this->pictureBoxImg->TabIndex = 1;
+			   this->pictureBoxImg->TabStop = false;
+			   // 
+			   // trackBar1
+			   // 
+			   this->trackBar1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->trackBar1->BackColor = System::Drawing::SystemColors::ControlDarkDark;
+			   this->trackBar1->Enabled = false;
+			   this->trackBar1->Location = System::Drawing::Point(12, 520);
+			   this->trackBar1->Maximum = 255;
+			   this->trackBar1->Minimum = -255;
+			   this->trackBar1->Name = L"trackBar1";
+			   this->trackBar1->Size = System::Drawing::Size(270, 45);
+			   this->trackBar1->TabIndex = 2;
+			   this->trackBar1->TickFrequency = 16;
+			   this->trackBar1->Scroll += gcnew System::EventHandler(this, &Form1::trackBar1_Scroll);
+			   // 
+			   // avgbright
+			   // 
+			   this->avgbright->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->avgbright->AutoSize = true;
+			   this->avgbright->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
+			   this->avgbright->Location = System::Drawing::Point(12, 504);
+			   this->avgbright->Name = L"avgbright";
+			   this->avgbright->Size = System::Drawing::Size(51, 13);
+			   this->avgbright->TabIndex = 3;
+			   this->avgbright->Text = L"C++ AVG";
+			   this->avgbright->Click += gcnew System::EventHandler(this, &Form1::label1_Click);
+			   // 
+			   // dlgOpen
+			   // 
+			   this->dlgOpen->FileName = L"openFileDialog1";
+			   this->dlgOpen->Filter = L"JPEG|*.jpg|Bitmap|*.bmp|All Files|*.*";
+			   // 
+			   // ASMLabel
+			   // 
+			   this->ASMLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->ASMLabel->AutoSize = true;
+			   this->ASMLabel->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
+			   this->ASMLabel->Location = System::Drawing::Point(12, 429);
+			   this->ASMLabel->Name = L"ASMLabel";
+			   this->ASMLabel->Size = System::Drawing::Size(55, 13);
+			   this->ASMLabel->TabIndex = 5;
+			   this->ASMLabel->Text = L"ASM AVG";
+			   // 
+			   // ASMtrackbar
+			   // 
+			   this->ASMtrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->ASMtrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
+			   this->ASMtrackbar->Enabled = false;
+			   this->ASMtrackbar->Location = System::Drawing::Point(12, 445);
+			   this->ASMtrackbar->Maximum = 255;
+			   this->ASMtrackbar->Minimum = -255;
+			   this->ASMtrackbar->Name = L"ASMtrackbar";
+			   this->ASMtrackbar->Size = System::Drawing::Size(270, 45);
+			   this->ASMtrackbar->TabIndex = 4;
+			   this->ASMtrackbar->TickFrequency = 16;
+			   this->ASMtrackbar->Scroll += gcnew System::EventHandler(this, &Form1::ASMtrackbar_Scroll);
+			   // 
+			   // negativeImg
+			   // 
+			   this->negativeImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
+				   | System::Windows::Forms::AnchorStyles::Right));
+			   this->negativeImg->AutoSize = true;
+			   this->negativeImg->Enabled = false;
+			   this->negativeImg->Location = System::Drawing::Point(404, 445);
+			   this->negativeImg->Name = L"negativeImg";
+			   this->negativeImg->Size = System::Drawing::Size(69, 17);
+			   this->negativeImg->TabIndex = 7;
+			   this->negativeImg->Text = L"Negative";
+			   this->negativeImg->UseVisualStyleBackColor = true;
+			   this->negativeImg->CheckedChanged += gcnew System::EventHandler(this, &Form1::negativeImg_CheckedChanged);
+			   // 
+			   // negativeASMLabel
+			   // 
+			   this->negativeASMLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
+				   | System::Windows::Forms::AnchorStyles::Right));
+			   this->negativeASMLabel->AutoSize = true;
+			   this->negativeASMLabel->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
+			   this->negativeASMLabel->Location = System::Drawing::Point(470, 446);
+			   this->negativeASMLabel->Name = L"negativeASMLabel";
+			   this->negativeASMLabel->Size = System::Drawing::Size(55, 13);
+			   this->negativeASMLabel->TabIndex = 9;
+			   this->negativeASMLabel->Text = L"ASM AVG";
+			   // 
+			   // brightnessLabel
+			   // 
+			   this->brightnessLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->brightnessLabel->BackColor = System::Drawing::SystemColors::MenuHighlight;
+			   this->brightnessLabel->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
+			   this->brightnessLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->brightnessLabel->ForeColor = System::Drawing::Color::White;
+			   this->brightnessLabel->Location = System::Drawing::Point(15, 393);
+			   this->brightnessLabel->Name = L"brightnessLabel";
+			   this->brightnessLabel->Size = System::Drawing::Size(266, 26);
+			   this->brightnessLabel->TabIndex = 10;
+			   this->brightnessLabel->Text = L"Brightness";
+			   this->brightnessLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
+			   // 
+			   // optionsLabel
+			   // 
+			   this->optionsLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
+				   | System::Windows::Forms::AnchorStyles::Right));
+			   this->optionsLabel->BackColor = System::Drawing::SystemColors::MenuHighlight;
+			   this->optionsLabel->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
+			   this->optionsLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->optionsLabel->ForeColor = System::Drawing::Color::White;
+			   this->optionsLabel->Location = System::Drawing::Point(404, 393);
+			   this->optionsLabel->Name = L"optionsLabel";
+			   this->optionsLabel->Size = System::Drawing::Size(275, 26);
+			   this->optionsLabel->TabIndex = 11;
+			   this->optionsLabel->Text = L"Options";
+			   this->optionsLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
+			   // 
+			   // Form1
+			   // 
+			   this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
+			   this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			   this->BackColor = System::Drawing::SystemColors::ButtonShadow;
+			   this->ClientSize = System::Drawing::Size(693, 572);
+			   this->Controls->Add(this->optionsLabel);
+			   this->Controls->Add(this->brightnessLabel);
+			   this->Controls->Add(this->negativeASMLabel);
+			   this->Controls->Add(this->negativeImg);
+			   this->Controls->Add(this->ASMLabel);
+			   this->Controls->Add(this->ASMtrackbar);
+			   this->Controls->Add(this->avgbright);
+			   this->Controls->Add(this->trackBar1);
+			   this->Controls->Add(this->pictureBoxImg);
+			   this->Controls->Add(this->menuStrip1);
+			   this->MainMenuStrip = this->menuStrip1;
+			   this->Name = L"Form1";
+			   this->Text = L"Form1";
+			   this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Form1::Form1_FormClosing);
+			   this->Load += gcnew System::EventHandler(this, &Form1::Form1_Load);
+			   this->menuStrip1->ResumeLayout(false);
+			   this->menuStrip1->PerformLayout();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->EndInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->EndInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ASMtrackbar))->EndInit();
+			   this->ResumeLayout(false);
+			   this->PerformLayout();
+
+		   }
 #pragma endregion
-	private: System::Void exitToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void exitToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
 	{
 		Application::Exit();
 	}
@@ -260,11 +335,11 @@ namespace CppCLRWinformsProjekt {
 	}
 	private: System::Void menuStrip1_ItemClicked(System::Object^ sender, System::Windows::Forms::ToolStripItemClickedEventArgs^ e) {
 	}
-	private: System::Void openToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void openToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
 	{
-		if (dlgOpen->ShowDialog() == System::Windows::Forms::DialogResult::OK) 
+		if (dlgOpen->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
-			try 
+			try
 			{
 				bmpFront = (Bitmap^)Image::FromFile(dlgOpen->FileName);
 
@@ -274,29 +349,31 @@ namespace CppCLRWinformsProjekt {
 
 				trackBar1->Enabled = true;
 				ASMtrackbar->Enabled = true;
+				negativeImg->Enabled = true;
 
 				cppTotal = 0.0;
 				cppCount = 0.0;
 				asmCount = 0.0;
 				asmTotal = 0.0;
-
+				negASMCount = 0.0;
+				negASMTotal = 0.0;
 			}
-			catch(...)
+			catch (...)
 			{
 				MessageBox::Show("File could not be opened!");
 			}
 		}
 	}
-	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e)
 	{
-		bmpData = bmpFront->LockBits(imgRect,ImageLockMode::WriteOnly,PixelFormat::Format24bppRgb);
+		bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
 
 		long startTime = clock();
 
 		AdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), trackBar1->Value);
 
 		long finishTime = clock();
-		
+
 		bmpFront->UnlockBits(bmpData);
 
 		pictureBoxImg->Image = bmpFront;
@@ -304,24 +381,24 @@ namespace CppCLRWinformsProjekt {
 		cppTotal += finishTime - startTime;
 		cppCount++;
 
-		avgbright->Text = "C++ AVG: " + Math::Round(cppTotal / cppCount,2);
+		avgbright->Text = "C++ AVG: " + Math::Round(cppTotal / cppCount, 2);
 	}
-	private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) 
+	private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
 	{
 		ClearOriginalImage();
 	}
 
-	private: System::Void Form1_Load(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void Form1_Load(System::Object^ sender, System::EventArgs^ e)
 	{
 
 	}
-	private: System::Void ASMtrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) 
+	private: System::Void ASMtrackbar_Scroll(System::Object^ sender, System::EventArgs^ e)
 	{
 		bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
 
 		long startTime = clock();
 
-		ASMAdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(),bmpOriginal, ASMtrackbar->Value,imgSizeInBytes);
+		ASMAdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, ASMtrackbar->Value, imgSizeInBytes);
 
 		long finishTime = clock();
 
@@ -333,6 +410,27 @@ namespace CppCLRWinformsProjekt {
 		asmCount++;
 
 		ASMLabel->Text = "ASM AVG: " + Math::Round(asmTotal / asmCount, 2);
+	}
+	private: System::Void negativeImg_CheckedChanged(System::Object^ sender, System::EventArgs^ e) 
+	{	
+
+		bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
+		bool isChecked = negativeImg->Checked;
+		long startTime = clock();
+		
+		ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, imgSizeInBytes, isChecked);
+
+		long finishTime = clock();
+
+		bmpFront->UnlockBits(bmpData);
+
+		pictureBoxImg->Image = bmpFront;
+
+		negASMTotal += finishTime - startTime;
+		negASMCount++;
+
+		negativeASMLabel->Text = "ASM AVG: " + Math::Round(negASMTotal / negASMCount, 2);
+
 	}
 };
 	}
