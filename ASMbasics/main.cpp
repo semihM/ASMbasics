@@ -1,6 +1,8 @@
 // BUILD DEPENDENCIES MUST INCLUDE MASM
 
 #include <iostream>
+#include <Windows.h>
+#include <time.h>
 
 using namespace std;
 
@@ -132,6 +134,14 @@ extern "C" double Distance(Point * p1, Point * p2);
 
 //////////////////  CPUID AVX  //////////////////
 extern "C" bool GetAVXSupport();
+
+///////////////// Threading //////////////////
+extern "C" void CreateThreadASM(int* i);
+
+extern "C" HANDLE CreateThreadLockTest(int* i);
+extern "C" void ThreadStartLockTest(int* i);
+
+extern "C" HANDLE CreateThreadSpinTest(int* i);
 
 int main()
 {	
@@ -266,7 +276,42 @@ int main()
 	if (GetAVXSupport()) cout << "AVX is supported!" << endl;
 	else cout << "AVX is NOT supported :(" << endl;
 	*/
+
+	/*
+	int i = 0;
+	CreateThreadASM(&i);
+
+	while(i==0){} //Loop until i's value changes
+
+	cout << "value of i:" << i << endl;
+	*/
 	
+	/*
+	int i = 0;
+	HANDLE threadHandle = CreateThreadLockTest(&i);
+	ThreadStartLockTest(&i);
+
+	WaitForSingleObject(threadHandle, INFINITE);
+
+	cout << "value of i:" << i << endl;
+	*/
+	
+	/*
+	int j = 0;
+	HANDLE handles[5];
+	long startTime = clock();
+
+	for (int i = 0; i < 5; i++)
+		handles[i] = CreateThreadSpinTest(&j);
+	for (int i = 0; i < 5; i++)
+		WaitForSingleObject(handles[i], INFINITE);
+
+	long finishTime = clock();
+
+	cout << "value of j:" << j << endl;
+	cout << "time:" << (finishTime - startTime) << endl;
+	*/
+
 	cout << endl << "Press enter to quit..." << endl;
 	cin.get();
 	return 0;

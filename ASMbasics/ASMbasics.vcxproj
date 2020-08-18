@@ -157,6 +157,7 @@
     <MASM Include="sse.asm">
       <FileType>Document</FileType>
     </MASM>
+    <MASM Include="thread.asm" />
   </ItemGroup>
   <ItemGroup>
     <None Include="pointstruct.inc" />

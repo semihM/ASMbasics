@@ -47,6 +47,9 @@
     <MASM Include="avx.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="thread.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <None Include="pointstruct.inc">
