@@ -1,7 +1,7 @@
 .data
     align 16
 	RCPBOXWIDTH real4 0.0, 0.0, 0.0, 0.0
-	ONES	    real4 1.0, 1.0, 1.0, 1.0
+	ONES	    real4 0.0, 1.0, 1.0, 1.0
 	
 	HBLUR	  qword	 ?
 	BLURWIDTH dword  ?
@@ -96,13 +96,13 @@ ASMNegativeIMG proc
 ASMNegativeIMG endp
 
 UpdateR11 proc
-	;cmp r11d, 300h
-	;cmovg r11d, [UNDERFLOW]
-	cmp r11d, 0FFh
+	cmp r11, 300h
+	cmovg r11d, [UNDERFLOW]
+	cmp r11, 0FFh
 	cmovg r11d, [OVERFLOW]
 	ret
 UpdateR11 endp
-
+ 
 AddOrgToXMM0 proc
 	; Add the pixel that r10d and ecx point to, from bmpOrg to xmm0
 	cmp ecx, 0
@@ -164,6 +164,8 @@ AddOrgToXMM1 proc
 	pinsrb xmm7, byte ptr [r8+rax+2], 8		; B in xmm7's 1st byte
 	por xmm5, xmm6			; R G as xmm5's low words
     por xmm5, xmm7			; R G B xmm5's first 3 words
+	
+	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	addps xmm1, xmm5
 
@@ -197,6 +199,8 @@ SubOrgFromXMM1 proc
 	pinsrb xmm7, byte ptr [r8+rax+2], 8		; B in xmm7's 1st byte
 	por xmm5, xmm6			; R G as xmm5's low words
     por xmm5, xmm7			; R G B xmm5's first 3 words
+	
+	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	subps xmm1, xmm5
 
@@ -224,27 +228,23 @@ WriteXMM0ToHBlur proc
 	push rcx
 	mov rcx, HBLUR
 
+	; We use dword INT versions of XMM0 which are stored in XMM4
 	;Red
-	pextrd r11d	, xmm0, 0
+	pextrd r11d	, xmm4, 0
 	call UpdateR11
 	mov byte ptr[rcx+rax], r11b
 
 	;Green
-	pextrd r11d	, xmm0, 1
+	pextrd r11d	, xmm4, 1
 	call UpdateR11
 	mov byte ptr[rcx+rax+1], r11b
 
 	;Blue
-	pextrd r11d	, xmm0, 2
+	pextrd r11d	, xmm4, 2
 	call UpdateR11
 	mov byte ptr[rcx+rax+2], r11b
 	
 	pop rcx
-	;pextrb byte ptr [r9+rax], xmm0, 0
-	;pextrb byte ptr [r9+rax+1], xmm0, 4
-	;pextrb byte ptr [r9+rax+2], xmm0, 8	
-	
-	;movaps xmmword ptr [r9+rax], xmm0
 
 	Finishedwrite:
 		ret
@@ -283,7 +283,7 @@ AddHBlurToXMM0 proc
 	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
 	por xmm5, xmm6			; R G as xmm5's low words
     por xmm5, xmm7			; R G B xmm5's first 3 words
-	  
+	
 	addps xmm0, xmm5
 
 	Finished_Vadd0:
@@ -321,6 +321,8 @@ AddHBlurToXMM1 proc
 	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
 	por xmm5, xmm6			; R G as xmm5's low words
     por xmm5, xmm7			; R G B xmm5's first 3 words
+	
+	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	addps xmm1, xmm5
 
@@ -359,6 +361,8 @@ SubHBlurFromXMM1 proc
 	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
 	por xmm5, xmm6			; R G as xmm5's low words
     por xmm5, xmm7			; R G B xmm5's first 3 words
+	
+	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	subps xmm1, xmm5
 
@@ -386,26 +390,21 @@ WriteHBlurToScan0 proc
 
 	mul [COUNT]
 
+	; We use dword INT versions of XMM0 which are stored in XMM4
 	;Red
-	pextrd r11d	, xmm0, 0
+	pextrd r11d	, xmm4, 0
 	call UpdateR11
 	mov byte ptr[r9+rax], r11b
 
 	;Green
-	pextrd r11d	, xmm0, 1
+	pextrd r11d	, xmm4, 1
 	call UpdateR11
 	mov byte ptr[r9+rax+1], r11b
 
 	;Blue
-	pextrd r11d	, xmm0, 2
+	pextrd r11d	, xmm4, 2
 	call UpdateR11
 	mov byte ptr[r9+rax+2], r11b
-
-	;pextrb byte ptr [r9+rax], xmm0, 0
-	;pextrb byte ptr [r9+rax+1], xmm0, 4
-	;pextrb byte ptr [r9+rax+2], xmm0, 8	
-	
-	;movaps xmmword ptr [r9+rax], xmm0
 
 	Finished_Vwrite:
 		ret
@@ -417,6 +416,9 @@ ASMBlurIMG proc
 	;							unsigned char* bmpOrg=r8,
 	;							unsigned char* bmpDataScan0=r9,
 	;							unsigned char* hblur, int blurWidth)
+
+	push rbp
+	mov rbp, rsp
 
 	mov [IMG_H], ecx
 	mov [IMG_W], edx
@@ -447,13 +449,15 @@ ASMBlurIMG proc
 		neg r10d
 
 		HBlur_XLoop_1:
-			;avg sum in xmm0
+			;avg in xmm0
+			;tmp in xmm1
 			call AddOrgToXMM0
 
 			inc r10d
 			cmp r10d, [BLURWIDTH]
 			jl HBlur_XLoop_1
-
+		
+		cvtdq2ps xmm0, xmm0
 		mulps xmm0, xmmword ptr [RCPBOXWIDTH]
 
 		xor r10, r10
@@ -475,8 +479,10 @@ ASMBlurIMG proc
 
 			mulps xmm1, xmmword ptr [RCPBOXWIDTH]
 
-			addps xmm0, xmm1 
-
+			addps xmm0, xmm1
+			
+			roundps  xmm4, xmm0, 1 
+			cvtps2dq xmm4, xmm4		;xmm4 to floor round floats, so we can keep xmm0 floats
 			call WriteXMM0ToHBlur
 
 			inc r10d
@@ -487,7 +493,7 @@ ASMBlurIMG proc
 		inc ecx
 		cmp ecx, [IMG_H]
 		jl HBlur_YLoop
-	
+
 	xor r10d, r10d
 	xor ecx, ecx
 	VBlur_YLoop:
@@ -509,6 +515,7 @@ ASMBlurIMG proc
 			cmp r10d, [BLURWIDTH]
 			jl VBlur_XLoop_1
 
+		cvtdq2ps xmm0, xmm0		; xmm0 dword ints to SP floats
 		mulps xmm0, xmmword ptr [RCPBOXWIDTH]
 
 		xor r10, r10
@@ -530,8 +537,10 @@ ASMBlurIMG proc
 
 			mulps xmm1, xmmword ptr [RCPBOXWIDTH]
 
-			addps xmm0, xmm1 
+			addps xmm0, xmm1
 
+			roundps  xmm4, xmm0, 1 
+			cvtps2dq xmm4, xmm4		;xmm4 to floor round floats, so we can keep xmm0 floats
 			call WriteHBlurToScan0
 
 			inc r10d
@@ -542,6 +551,9 @@ ASMBlurIMG proc
 		inc ecx
 		cmp ecx, [IMG_W]
 		jl VBlur_YLoop
+	
+	mov rsp, rbp
+	pop rbp
 
 	ret
 ASMBlurIMG endp
