@@ -1,7 +1,7 @@
 .data
     align 16
 	RCPBOXWIDTH real4 0.0, 0.0, 0.0, 0.0
-	ONES	    real4 0.0, 1.0, 1.0, 1.0
+	ONES	    real4 1.0, 1.0, 1.0, 1.0
 	
 	HBLUR	  qword	 ?
 	BLURWIDTH dword  ?
@@ -140,14 +140,14 @@ AddOrgToXMM0 endp
 AddOrgToXMM1 proc
 	; Add the pixel that r10d and ecx point to, from bmpOrg to xmm1
 	cmp ecx, 0
-	jl Finishedadd1
+	jl OverflowLimiter1
 	cmp r10d, 0
-	jl Finishedadd1
+	jl OverflowLimiter1
 
 	cmp ecx, [IMG_H]
-	jge Finishedadd1
+	jge OverflowLimiter1
 	cmp r10d, [IMG_W]
-	jge Finishedadd1
+	jge OverflowLimiter1
 
 	mov eax, ecx
 	imul eax, [IMG_W]
@@ -168,21 +168,26 @@ AddOrgToXMM1 proc
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	addps xmm1, xmm5
+	jmp Finishedadd1
 
+	OverflowLimiter1:
+		pinsrd xmm1, [OVERFLOW], 0
+		pshufd xmm1, xmm1, 0
+		mulps xmm1, [ONES]
 	Finishedadd1:
 		ret
 AddOrgToXMM1 endp
 
 SubOrgFromXMM1 proc
 	cmp ecx, 0
-	jl Finishedsub
+	jl UnderflowLimiter
 	cmp r10d, 0
-	jl Finishedsub
+	jl UnderflowLimiter
 
 	cmp ecx, [IMG_H]
-	jge Finishedsub
+	jge UnderflowLimiter
 	cmp r10d, [IMG_W]
-	jge Finishedsub
+	jge UnderflowLimiter
 
 	mov eax, ecx
 	imul eax, [IMG_W]
@@ -203,7 +208,10 @@ SubOrgFromXMM1 proc
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	subps xmm1, xmm5
+	jmp Finishedsub
 
+	UnderflowLimiter:
+		pxor xmm1, xmm1
 	Finishedsub:
 		ret
 SubOrgFromXMM1 endp
@@ -294,14 +302,14 @@ AddHBlurToXMM1 proc
 	; Add the pixel that r10d and ecx point to, from bmpOrg to xmm1
 	; r10d<0 || ecx<0 || ecx>=IMG_W || r10d>=IMG_H
 	cmp ecx, 0
-	jl Finished_Vadd1
+	jl OverflowLimiter_Vadd1
 	cmp r10d, 0
-	jl Finished_Vadd1
+	jl OverflowLimiter_Vadd1
 
 	cmp ecx, [IMG_W]
-	jge Finished_Vadd1
+	jge OverflowLimiter_Vadd1
 	cmp r10d, [IMG_H]
-	jge Finished_Vadd1
+	jge OverflowLimiter_Vadd1
 
 	;ecx = 3*(ecx + r10*IMG_W)
 	mov eax, r10d
@@ -325,7 +333,12 @@ AddHBlurToXMM1 proc
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	addps xmm1, xmm5
+	jmp Finished_Vadd1
 
+	OverflowLimiter_Vadd1:
+		pinsrd xmm1, [OVERFLOW], 0
+		pshufd xmm1, xmm1, 0
+		mulps xmm1, [ONES]
 	Finished_Vadd1:
 		ret
 AddHBlurToXMM1 endp
@@ -333,15 +346,15 @@ AddHBlurToXMM1 endp
 SubHBlurFromXMM1 proc
 	; r10d<0 || ecx<0 || ecx>=IMG_W || r10d>=IMG_H
 	cmp ecx, 0
-	jl Finished_Vsub
+	jl UnderflowLimiter_Vsub
 	cmp r10d, 0
-	jl Finished_Vsub
+	jl UnderflowLimiter_Vsub
 
 	cmp ecx, [IMG_W]
-	jge Finished_Vsub
+	jge UnderflowLimiter_Vsub
 	cmp r10d, [IMG_H]
+	jge UnderflowLimiter_Vsub
 
-	jge Finished_Vsub
 	;ecx = 3*(ecx + r10*IMG_W)
 	mov eax, r10d
 	imul eax, [IMG_W]
@@ -365,7 +378,10 @@ SubHBlurFromXMM1 proc
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
 	subps xmm1, xmm5
+	jmp Finished_Vsub
 
+	UnderflowLimiter_Vsub:
+		pxor xmm1, xmm1
 	Finished_Vsub:
 		ret
 SubHBlurFromXMM1 endp
