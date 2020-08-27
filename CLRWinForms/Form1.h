@@ -93,9 +93,14 @@ namespace CppCLRWinformsProjekt {
 		Bitmap^ bmpFront;
 		unsigned char* bmpOriginal;
 		unsigned char* hBlur;
+		unsigned char* keptIMG;
+
 		static int imgSizeInBytes = -1;
 		static Rectangle imgRect;
 		BitmapData^ bmpData;
+
+		static Color sColor, nColor;
+		static bool keepLast = false;
 
 		static double Brightness_cppCount = 0.0;
 		static double Brightness_cppTotal = 0.0;
@@ -109,18 +114,30 @@ namespace CppCLRWinformsProjekt {
 		static double Blur_asmCount = 0.0;
 		static double Blur_cppTotal = 0.0;
 		static double Blur_cppCount = 0.0;
+		static double ColorChange_cppTotal = 0.0;
+		static double ColorChange_cppCount = 0.0;
+		static double ColorChange_asmTotal = 0.0;
+	
+		static double ColorChange_asmCount = 0.0;
 
-		void AdjustBrightness(unsigned char* bmp, short amount)
+		void AdjustBrightness(unsigned char* bmp,unsigned char* org, short amount)
 		{
 			for (int i = 0; i < imgSizeInBytes; i++)
 			{
-				if ((short)bmpOriginal[i] + amount < 0) bmp[i] = 0;
-				else if ((short)bmpOriginal[i] + amount > 255) bmp[i] = 255;
-				else bmp[i] = bmpOriginal[i] + amount;
+				if ((short)org[i] + amount < 0) bmp[i] = 0;
+				else if ((short)org[i] + amount > 255) bmp[i] = 255;
+				else bmp[i] = org[i] + amount;
 			}
 		}
 
-		void CPPNegativeIMG(unsigned char* bmp, unsigned char* original,int imgSize,bool isChecked)
+		void ResetIMG(unsigned char* bmp, unsigned char* original, long imgSize)
+		{
+			for (int i = 0; i < imgSizeInBytes; i++)
+			{
+				bmp[i] = original[i];
+			}
+		}
+		void CPPNegativeIMG(unsigned char* bmp, unsigned char* original,long imgSize,bool isChecked)
 		{	
 			if(isChecked)
 			{
@@ -138,7 +155,7 @@ namespace CppCLRWinformsProjekt {
 			}
 		}
 
-		void CPPBlurIMG(unsigned char* bmp, short blurWidth)
+		void CPPBlurIMG(unsigned char* bmp,unsigned char* org, short blurWidth)
 		{
 			int height, width;
 			Average avg,tmp;
@@ -154,7 +171,7 @@ namespace CppCLRWinformsProjekt {
 				avg.Zero();
 				for(int x = -blurWidth-1;x<blurWidth;x++)
 				{	
-					avg.Add(x, y, bmpOriginal, width, height);
+					avg.Add(x, y, org, width, height);
 					
 				}
 				avg.Multiply(rcpboxWidth);
@@ -162,8 +179,8 @@ namespace CppCLRWinformsProjekt {
 				for (int x = 0; x < width; x++)
 				{
 					tmp.Zero();
-					tmp.Sub(x - blurWidth - 1, y, bmpOriginal, width, height);
-					tmp.Add(x + blurWidth, y, bmpOriginal, width, height);
+					tmp.Sub(x - blurWidth - 1, y, org, width, height);
+					tmp.Add(x + blurWidth, y, org, width, height);
 
 					tmp.Multiply(rcpboxWidth);
 
@@ -200,6 +217,126 @@ namespace CppCLRWinformsProjekt {
 			}
 		}
 
+		void CPPColorChangeColorRange(unsigned char* bmp,unsigned char *org,Color searchColor, Color newColor, unsigned char rangeValue, int rangeType)
+		{	
+			// Search color
+			unsigned char Sb = searchColor.B;
+			unsigned char Sg = searchColor.G;
+			unsigned char Sr = searchColor.R;
+
+			// Destination color
+			unsigned char Db = newColor.B;
+			unsigned char Dg = newColor.G;
+			unsigned char Dr = newColor.R;
+
+			// Dimmer
+			if (rangeType==0)
+			{
+				// Limits	
+				unsigned char Lb = 0;
+				unsigned char Lg = 0;
+				unsigned char Lr = 0;
+
+				// Underflow check
+				if (Sb >= rangeValue) { Lb = Sb-rangeValue; }
+				if (Sg >= rangeValue) { Lg = Sg-rangeValue; }
+				if (Sr >= rangeValue) { Lr = Sr-rangeValue; }
+
+				for (int p = 0; p < imgSizeInBytes; p+=3)
+				{
+					// Check red's range
+					if (org[p] <= Sr && org[p] >= Lr)
+					{	//Check green's range
+						if (org[p+1] <= Sg && org[p+1] >= Lg)
+						{	//Check blue's range
+							if (org[p+2] <= Sb && org[p+2] >= Lb)
+							{
+								bmp[p] = Db;
+								bmp[p + 1] = Dg;
+								bmp[p + 2] = Dr;
+							}
+						}
+					}
+				}
+			}
+			// Brighter
+			else if (rangeType == 1)
+			{
+				// Limits
+				unsigned char Ub = 255;
+				unsigned char Ug = 255;
+				unsigned char Ur = 255;
+
+				// Overflow check
+				if (255-Sb >= rangeValue) { Ub = Sb + rangeValue; }
+				if (255-Sg >= rangeValue) { Ug = Sg + rangeValue; }
+				if (255-Sr >= rangeValue) { Ur = Sr + rangeValue; }
+
+				for (int p = 0; p < imgSizeInBytes; p += 3)
+				{
+					// Check red's range
+					if (org[p] >= Sr && org[p] <= Ur)
+					{	//Check green's range
+						if (org[p + 1] >= Sg && org[p + 1] <= Ug)
+						{	//Check blue's range
+							if (org[p + 2] >= Sb && org[p + 2] <= Ub)
+							{
+								bmp[p] = Db;
+								bmp[p + 1] = Dg;
+								bmp[p + 2] = Dr;
+							}
+						}
+					}
+				}
+			}
+			else if (rangeType == 2) 
+			{	
+				// Limits
+				unsigned char Lb = 0;
+				unsigned char Lg = 0;
+				unsigned char Lr = 0;
+				unsigned char Ub = 255;
+				unsigned char Ug = 255;
+				unsigned char Ur = 255;
+
+				unsigned char upperRange, lowerRange;
+				if ( rangeValue%2 )
+				{
+					upperRange = (unsigned char)rangeValue / 2;
+					lowerRange = upperRange + 1;
+				}
+				else
+				{
+					upperRange = rangeValue / 2;
+					lowerRange = upperRange;
+				}
+				// Underflow check
+				if (Sb >= lowerRange) { Lb = Sb + lowerRange; }
+				if (Sg >= lowerRange) { Lg = Sg + lowerRange; }
+				if (Sr >= lowerRange) { Lr = Sr + lowerRange; }
+				// Overflow check
+				if (255 - Sb >= upperRange) { Ub = Sb + upperRange; }
+				if (255 - Sg >= upperRange) { Ug = Sg + upperRange; }
+				if (255 - Sr >= upperRange) { Ur = Sr + upperRange; }
+
+				for (int p = 0; p < imgSizeInBytes; p += 3)
+				{
+					// Check red's range
+					if ((org[p] <= Sr && org[p] >= Lr) || (org[p] >= Sr && org[p] <= Ur))
+					{	//Check green's range
+						if ((org[p+1] <= Sr && org[p+1] >= Lr) || (org[p+1] >= Sr && org[p+1] <= Ug))
+						{	//Check blue's range
+							if ((org[p+2] <= Sr && org[p+2] >= Lr) || (org[p+2] >= Sr && org[p+2] <= Ub))
+							{
+								bmp[p] = Db;
+								bmp[p + 1] = Dg;
+								bmp[p + 2] = Dr;
+							}
+						}
+					}
+				}
+			}
+		}
 		void ClearOriginalImage()
 		{
 			if (bmpOriginal != nullptr) { delete[] bmpOriginal; }
@@ -228,6 +365,15 @@ namespace CppCLRWinformsProjekt {
 
 			bmp->UnlockBits(bmpData);
 
+		}
+
+		unsigned char* Copy(unsigned char* bmp) 
+		{
+			unsigned char* temp = new unsigned char[imgSizeInBytes];
+			for (int i = 0; i < imgSizeInBytes; i++) {
+				temp[i] = (char)bmp[i];
+			}
+			return temp;
 		}
 
 		Form1(void)
@@ -265,6 +411,26 @@ namespace CppCLRWinformsProjekt {
 	private: System::Windows::Forms::Label^ blurLabel;
 
 	private: System::Windows::Forms::CheckBox^ ASMCheckBox;
+	private: System::Windows::Forms::TrackBar^ ColorRangeScroll;
+
+
+	private: System::Windows::Forms::Label^ ColorRangeLabel;
+
+	private: System::Windows::Forms::Label^ RangeTypeLabel;
+	private: System::Windows::Forms::ComboBox^ rangeDropDown;
+	private: System::Windows::Forms::Label^ searchColorLabel;
+	private: System::Windows::Forms::Label^ newColorLabel;
+	private: System::Windows::Forms::ColorDialog^ SearchColorDiag;
+	private: System::Windows::Forms::ColorDialog^ newColorDiag;
+	private: System::Windows::Forms::TextBox^ searchColorText;
+	private: System::Windows::Forms::TextBox^ newColorText;
+	private: System::Windows::Forms::Button^ searchColorButton;
+	private: System::Windows::Forms::Button^ newColorButton;
+	private: System::Windows::Forms::ColorDialog^ colorChangeDialog;
+	private: System::Windows::Forms::Button^ colorApplyButton;
+
+	private: System::Windows::Forms::Button^ resetButton;
+	private: System::Windows::Forms::CheckBox^ keepIMGCheckBox;
 
 
 	private: System::ComponentModel::Container^ components;
@@ -290,15 +456,30 @@ namespace CppCLRWinformsProjekt {
 			   this->blurTrackbar = (gcnew System::Windows::Forms::TrackBar());
 			   this->blurLabel = (gcnew System::Windows::Forms::Label());
 			   this->ASMCheckBox = (gcnew System::Windows::Forms::CheckBox());
+			   this->ColorRangeScroll = (gcnew System::Windows::Forms::TrackBar());
+			   this->ColorRangeLabel = (gcnew System::Windows::Forms::Label());
+			   this->RangeTypeLabel = (gcnew System::Windows::Forms::Label());
+			   this->rangeDropDown = (gcnew System::Windows::Forms::ComboBox());
+			   this->searchColorLabel = (gcnew System::Windows::Forms::Label());
+			   this->newColorLabel = (gcnew System::Windows::Forms::Label());
+			   this->searchColorText = (gcnew System::Windows::Forms::TextBox());
+			   this->newColorText = (gcnew System::Windows::Forms::TextBox());
+			   this->searchColorButton = (gcnew System::Windows::Forms::Button());
+			   this->newColorButton = (gcnew System::Windows::Forms::Button());
+			   this->colorChangeDialog = (gcnew System::Windows::Forms::ColorDialog());
+			   this->colorApplyButton = (gcnew System::Windows::Forms::Button());
+			   this->resetButton = (gcnew System::Windows::Forms::Button());
+			   this->keepIMGCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			   this->menuStrip1->SuspendLayout();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brightnessTrackbar))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->blurTrackbar))->BeginInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ColorRangeScroll))->BeginInit();
 			   this->SuspendLayout();
 			   this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->fileToolStripMenuItem });
 			   this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			   this->menuStrip1->Name = L"menuStrip1";
-			   this->menuStrip1->Size = System::Drawing::Size(758, 24);
+			   this->menuStrip1->Size = System::Drawing::Size(746, 24);
 			   this->menuStrip1->TabIndex = 0;
 			   this->menuStrip1->Text = L"menuStrip1";
 			   this->menuStrip1->ItemClicked += gcnew System::Windows::Forms::ToolStripItemClickedEventHandler(this, &Form1::menuStrip1_ItemClicked);
@@ -317,13 +498,12 @@ namespace CppCLRWinformsProjekt {
 			   this->exitToolStripMenuItem->Size = System::Drawing::Size(103, 22);
 			   this->exitToolStripMenuItem->Text = L"&Exit";
 			   this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::exitToolStripMenuItem_Click);
-			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
-				   | System::Windows::Forms::AnchorStyles::Left)
+			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
 				   | System::Windows::Forms::AnchorStyles::Right));
 			   this->pictureBoxImg->BackColor = System::Drawing::SystemColors::Control;
-			   this->pictureBoxImg->Location = System::Drawing::Point(12, 27);
+			   this->pictureBoxImg->Location = System::Drawing::Point(13, 27);
 			   this->pictureBoxImg->Name = L"pictureBoxImg";
-			   this->pictureBoxImg->Size = System::Drawing::Size(734, 359);
+			   this->pictureBoxImg->Size = System::Drawing::Size(722, 359);
 			   this->pictureBoxImg->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
 			   this->pictureBoxImg->TabIndex = 1;
 			   this->pictureBoxImg->TabStop = false;
@@ -332,7 +512,7 @@ namespace CppCLRWinformsProjekt {
 			   this->averageTimeLabel->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
 			   this->averageTimeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
-			   this->averageTimeLabel->Location = System::Drawing::Point(9, 593);
+			   this->averageTimeLabel->Location = System::Drawing::Point(13, 610);
 			   this->averageTimeLabel->Margin = System::Windows::Forms::Padding(0, 0, 3, 0);
 			   this->averageTimeLabel->Name = L"averageTimeLabel";
 			   this->averageTimeLabel->Size = System::Drawing::Size(120, 20);
@@ -345,11 +525,11 @@ namespace CppCLRWinformsProjekt {
 			   this->brightnessTrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->brightnessTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			   this->brightnessTrackbar->Enabled = false;
-			   this->brightnessTrackbar->Location = System::Drawing::Point(12, 415);
+			   this->brightnessTrackbar->Location = System::Drawing::Point(12, 420);
 			   this->brightnessTrackbar->Maximum = 255;
 			   this->brightnessTrackbar->Minimum = -255;
 			   this->brightnessTrackbar->Name = L"brightnessTrackbar";
-			   this->brightnessTrackbar->Size = System::Drawing::Size(212, 45);
+			   this->brightnessTrackbar->Size = System::Drawing::Size(206, 45);
 			   this->brightnessTrackbar->TabIndex = 4;
 			   this->brightnessTrackbar->TickFrequency = 16;
 			   this->brightnessTrackbar->Scroll += gcnew System::EventHandler(this, &Form1::brightnessTrackbar_Scroll);
@@ -359,28 +539,28 @@ namespace CppCLRWinformsProjekt {
 			   this->brightnessLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->brightnessLabel->ForeColor = System::Drawing::Color::White;
-			   this->brightnessLabel->Location = System::Drawing::Point(12, 389);
+			   this->brightnessLabel->Location = System::Drawing::Point(12, 394);
 			   this->brightnessLabel->Name = L"brightnessLabel";
-			   this->brightnessLabel->Size = System::Drawing::Size(212, 26);
+			   this->brightnessLabel->Size = System::Drawing::Size(206, 26);
 			   this->brightnessLabel->TabIndex = 10;
 			   this->brightnessLabel->Text = L"Brightness";
 			   this->brightnessLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
-			   this->optionsLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Right));
+			   this->optionsLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->optionsLabel->BackColor = System::Drawing::SystemColors::MenuHighlight;
 			   this->optionsLabel->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
 			   this->optionsLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->optionsLabel->ForeColor = System::Drawing::Color::White;
-			   this->optionsLabel->Location = System::Drawing::Point(591, 389);
+			   this->optionsLabel->Location = System::Drawing::Point(481, 394);
 			   this->optionsLabel->Name = L"optionsLabel";
-			   this->optionsLabel->Size = System::Drawing::Size(155, 26);
+			   this->optionsLabel->Size = System::Drawing::Size(143, 26);
 			   this->optionsLabel->TabIndex = 11;
 			   this->optionsLabel->Text = L"Options";
 			   this->optionsLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
-			   this->negativeCheckbox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Right));
+			   this->negativeCheckbox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->negativeCheckbox->AutoSize = true;
 			   this->negativeCheckbox->Enabled = false;
-			   this->negativeCheckbox->Location = System::Drawing::Point(592, 418);
+			   this->negativeCheckbox->Location = System::Drawing::Point(481, 423);
 			   this->negativeCheckbox->Name = L"negativeCheckbox";
 			   this->negativeCheckbox->Size = System::Drawing::Size(69, 17);
 			   this->negativeCheckbox->TabIndex = 12;
@@ -391,11 +571,11 @@ namespace CppCLRWinformsProjekt {
 			   this->blurTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			   this->blurTrackbar->Enabled = false;
 			   this->blurTrackbar->LargeChange = 10;
-			   this->blurTrackbar->Location = System::Drawing::Point(12, 499);
+			   this->blurTrackbar->Location = System::Drawing::Point(12, 504);
 			   this->blurTrackbar->Margin = System::Windows::Forms::Padding(3, 0, 3, 3);
 			   this->blurTrackbar->Maximum = 100;
 			   this->blurTrackbar->Name = L"blurTrackbar";
-			   this->blurTrackbar->Size = System::Drawing::Size(212, 45);
+			   this->blurTrackbar->Size = System::Drawing::Size(206, 45);
 			   this->blurTrackbar->TabIndex = 1;
 			   this->blurTrackbar->TickFrequency = 10;
 			   this->blurTrackbar->Scroll += gcnew System::EventHandler(this, &Form1::blurTrackbar_Scroll);
@@ -405,28 +585,182 @@ namespace CppCLRWinformsProjekt {
 			   this->blurLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->blurLabel->ForeColor = System::Drawing::Color::White;
-			   this->blurLabel->Location = System::Drawing::Point(12, 473);
+			   this->blurLabel->Location = System::Drawing::Point(12, 478);
 			   this->blurLabel->Name = L"blurLabel";
-			   this->blurLabel->Size = System::Drawing::Size(212, 26);
+			   this->blurLabel->Size = System::Drawing::Size(206, 26);
 			   this->blurLabel->TabIndex = 14;
 			   this->blurLabel->Text = L"Blur Width";
 			   this->blurLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
 			   this->ASMCheckBox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->ASMCheckBox->AutoSize = true;
-			   this->ASMCheckBox->BackColor = System::Drawing::SystemColors::ActiveCaption;
+			   this->ASMCheckBox->BackColor = System::Drawing::Color::Red;
 			   this->ASMCheckBox->Enabled = false;
-			   this->ASMCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 11.25, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			   this->ASMCheckBox->FlatAppearance->BorderColor = System::Drawing::Color::White;
+			   this->ASMCheckBox->FlatAppearance->CheckedBackColor = System::Drawing::Color::Lime;
+			   this->ASMCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
-			   this->ASMCheckBox->Location = System::Drawing::Point(12, 568);
+			   this->ASMCheckBox->ForeColor = System::Drawing::Color::White;
+			   this->ASMCheckBox->Location = System::Drawing::Point(12, 552);
 			   this->ASMCheckBox->Name = L"ASMCheckBox";
-			   this->ASMCheckBox->Size = System::Drawing::Size(90, 22);
+			   this->ASMCheckBox->Size = System::Drawing::Size(78, 17);
 			   this->ASMCheckBox->TabIndex = 15;
 			   this->ASMCheckBox->Text = L"Use ASM";
 			   this->ASMCheckBox->UseVisualStyleBackColor = false;
+			   this->ColorRangeScroll->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->ColorRangeScroll->BackColor = System::Drawing::SystemColors::WindowFrame;
+			   this->ColorRangeScroll->Enabled = false;
+			   this->ColorRangeScroll->Location = System::Drawing::Point(277, 504);
+			   this->ColorRangeScroll->Maximum = 255;
+			   this->ColorRangeScroll->Name = L"ColorRangeScroll";
+			   this->ColorRangeScroll->Size = System::Drawing::Size(176, 45);
+			   this->ColorRangeScroll->TabIndex = 1;
+			   this->ColorRangeScroll->TickFrequency = 10;
+			   this->ColorRangeScroll->Scroll += gcnew System::EventHandler(this, &Form1::ColorRangeScroll_Scroll);
+			   this->ColorRangeLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->ColorRangeLabel->BackColor = System::Drawing::SystemColors::ActiveCaption;
+			   this->ColorRangeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->ColorRangeLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
+			   this->ColorRangeLabel->Location = System::Drawing::Point(277, 485);
+			   this->ColorRangeLabel->Name = L"ColorRangeLabel";
+			   this->ColorRangeLabel->Size = System::Drawing::Size(175, 18);
+			   this->ColorRangeLabel->TabIndex = 16;
+			   this->ColorRangeLabel->Text = L"Color Range";
+			   this->ColorRangeLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			   this->RangeTypeLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->RangeTypeLabel->BackColor = System::Drawing::SystemColors::ActiveCaption;
+			   this->RangeTypeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->RangeTypeLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
+			   this->RangeTypeLabel->Location = System::Drawing::Point(277, 552);
+			   this->RangeTypeLabel->Name = L"RangeTypeLabel";
+			   this->RangeTypeLabel->Size = System::Drawing::Size(96, 21);
+			   this->RangeTypeLabel->TabIndex = 17;
+			   this->RangeTypeLabel->Text = L"Range Type";
+			   this->RangeTypeLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			   this->rangeDropDown->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->rangeDropDown->Enabled = false;
+			   this->rangeDropDown->FormattingEnabled = true;
+			   this->rangeDropDown->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"Dimmer", L"Brighter", L"Centered" });
+			   this->rangeDropDown->Location = System::Drawing::Point(392, 552);
+			   this->rangeDropDown->Name = L"rangeDropDown";
+			   this->rangeDropDown->Size = System::Drawing::Size(61, 21);
+			   this->rangeDropDown->TabIndex = 18;
+			   this->rangeDropDown->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::rangeDropDown_SelectedIndexChanged);
+			   this->searchColorLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->searchColorLabel->BackColor = System::Drawing::SystemColors::Highlight;
+			   this->searchColorLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->searchColorLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
+			   this->searchColorLabel->Location = System::Drawing::Point(277, 394);
+			   this->searchColorLabel->Name = L"searchColorLabel";
+			   this->searchColorLabel->Size = System::Drawing::Size(70, 15);
+			   this->searchColorLabel->TabIndex = 19;
+			   this->searchColorLabel->Text = L"Search Color";
+			   this->searchColorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			   this->newColorLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->newColorLabel->BackColor = System::Drawing::SystemColors::Highlight;
+			   this->newColorLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->newColorLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
+			   this->newColorLabel->Location = System::Drawing::Point(376, 394);
+			   this->newColorLabel->Name = L"newColorLabel";
+			   this->newColorLabel->Size = System::Drawing::Size(74, 15);
+			   this->newColorLabel->TabIndex = 20;
+			   this->newColorLabel->Text = L"New Color";
+			   this->newColorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			   this->searchColorText->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->searchColorText->Enabled = false;
+			   this->searchColorText->Location = System::Drawing::Point(277, 414);
+			   this->searchColorText->Name = L"searchColorText";
+			   this->searchColorText->Size = System::Drawing::Size(70, 20);
+			   this->searchColorText->TabIndex = 21;
+			   this->newColorText->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->newColorText->Enabled = false;
+			   this->newColorText->Location = System::Drawing::Point(376, 414);
+			   this->newColorText->Name = L"newColorText";
+			   this->newColorText->Size = System::Drawing::Size(75, 20);
+			   this->newColorText->TabIndex = 22;
+			   this->searchColorButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->searchColorButton->CausesValidation = false;
+			   this->searchColorButton->Enabled = false;
+			   this->searchColorButton->Location = System::Drawing::Point(277, 440);
+			   this->searchColorButton->Name = L"searchColorButton";
+			   this->searchColorButton->Size = System::Drawing::Size(70, 24);
+			   this->searchColorButton->TabIndex = 23;
+			   this->searchColorButton->Text = L"Pick";
+			   this->searchColorButton->UseVisualStyleBackColor = true;
+			   this->searchColorButton->Click += gcnew System::EventHandler(this, &Form1::searchColorButton_Click);
+			   this->newColorButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->newColorButton->Enabled = false;
+			   this->newColorButton->Location = System::Drawing::Point(376, 440);
+			   this->newColorButton->Name = L"newColorButton";
+			   this->newColorButton->Size = System::Drawing::Size(74, 24);
+			   this->newColorButton->TabIndex = 24;
+			   this->newColorButton->Text = L"Pick";
+			   this->newColorButton->UseVisualStyleBackColor = true;
+			   this->newColorButton->Click += gcnew System::EventHandler(this, &Form1::newColorButton_Click);
+			   this->colorChangeDialog->AnyColor = true;
+			   this->colorChangeDialog->FullOpen = true;
+			   this->colorChangeDialog->SolidColorOnly = true;
+			   this->colorApplyButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->colorApplyButton->CausesValidation = false;
+			   this->colorApplyButton->Enabled = false;
+			   this->colorApplyButton->Location = System::Drawing::Point(277, 603);
+			   this->colorApplyButton->Name = L"colorApplyButton";
+			   this->colorApplyButton->Size = System::Drawing::Size(176, 24);
+			   this->colorApplyButton->TabIndex = 25;
+			   this->colorApplyButton->Text = L"Change Colors";
+			   this->colorApplyButton->UseVisualStyleBackColor = true;
+			   this->colorApplyButton->Click += gcnew System::EventHandler(this, &Form1::colorApplyButton_Click);
+			   this->resetButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->resetButton->BackColor = System::Drawing::Color::Red;
+			   this->resetButton->Enabled = false;
+			   this->resetButton->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->resetButton->ForeColor = System::Drawing::SystemColors::ButtonHighlight;
+			   this->resetButton->Location = System::Drawing::Point(675, 606);
+			   this->resetButton->Name = L"resetButton";
+			   this->resetButton->Size = System::Drawing::Size(60, 21);
+			   this->resetButton->TabIndex = 26;
+			   this->resetButton->Text = L"RESET";
+			   this->resetButton->UseVisualStyleBackColor = false;
+			   this->resetButton->Click += gcnew System::EventHandler(this, &Form1::resetButton_Click);
+			   this->keepIMGCheckBox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->keepIMGCheckBox->AutoSize = true;
+			   this->keepIMGCheckBox->BackColor = System::Drawing::Color::Red;
+			   this->keepIMGCheckBox->Enabled = false;
+			   this->keepIMGCheckBox->FlatAppearance->BorderColor = System::Drawing::Color::White;
+			   this->keepIMGCheckBox->FlatAppearance->CheckedBackColor = System::Drawing::Color::Lime;
+			   this->keepIMGCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				   static_cast<System::Byte>(0)));
+			   this->keepIMGCheckBox->ForeColor = System::Drawing::SystemColors::ControlLightLight;
+			   this->keepIMGCheckBox->Location = System::Drawing::Point(97, 552);
+			   this->keepIMGCheckBox->Name = L"keepIMGCheckBox";
+			   this->keepIMGCheckBox->Size = System::Drawing::Size(121, 17);
+			   this->keepIMGCheckBox->TabIndex = 27;
+			   this->keepIMGCheckBox->Text = L"Keep Last Image";
+			   this->keepIMGCheckBox->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
+			   this->keepIMGCheckBox->UseVisualStyleBackColor = false;
+			   this->keepIMGCheckBox->CheckedChanged += gcnew System::EventHandler(this, &Form1::keepIMGCheckBox_CheckedChanged);
 			   this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			   this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			   this->AutoValidate = System::Windows::Forms::AutoValidate::EnableAllowFocusChange;
 			   this->BackColor = System::Drawing::SystemColors::ButtonShadow;
-			   this->ClientSize = System::Drawing::Size(758, 622);
+			   this->ClientSize = System::Drawing::Size(746, 639);
+			   this->Controls->Add(this->keepIMGCheckBox);
+			   this->Controls->Add(this->resetButton);
+			   this->Controls->Add(this->colorApplyButton);
+			   this->Controls->Add(this->newColorButton);
+			   this->Controls->Add(this->searchColorButton);
+			   this->Controls->Add(this->newColorText);
+			   this->Controls->Add(this->searchColorText);
+			   this->Controls->Add(this->newColorLabel);
+			   this->Controls->Add(this->searchColorLabel);
+			   this->Controls->Add(this->rangeDropDown);
+			   this->Controls->Add(this->RangeTypeLabel);
+			   this->Controls->Add(this->ColorRangeLabel);
+			   this->Controls->Add(this->ColorRangeScroll);
 			   this->Controls->Add(this->ASMCheckBox);
 			   this->Controls->Add(this->blurLabel);
 			   this->Controls->Add(this->blurTrackbar);
@@ -447,6 +781,7 @@ namespace CppCLRWinformsProjekt {
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->EndInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brightnessTrackbar))->EndInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->blurTrackbar))->EndInit();
+			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->ColorRangeScroll))->EndInit();
 			   this->ResumeLayout(false);
 			   this->PerformLayout();
 
@@ -476,6 +811,14 @@ namespace CppCLRWinformsProjekt {
 					brightnessTrackbar->Enabled = true;
 					blurTrackbar->Enabled = true;
 					negativeCheckbox->Enabled = true;
+					ColorRangeScroll->Enabled = true;
+					resetButton->Enabled = true;
+					searchColorButton->Enabled = true;
+					searchColorText->Enabled = true;
+					newColorButton->Enabled = true;
+					newColorText->Enabled = true;
+					rangeDropDown->Enabled = true;
+					keepIMGCheckBox->Enabled = true;
 
 					Brightness_cppTotal = 0.0;
 					Brightness_cppCount = 0.0;
@@ -493,13 +836,19 @@ namespace CppCLRWinformsProjekt {
 			}
 		}
 		private: System::Void brightnessTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e)
-		{
+		{	
 			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
 			long startTime, finishTime;
+			brightnessLabel->Text = "Brightness: " + brightnessTrackbar->Value.ToString();
+
+		
+			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
+			else { keptIMG = bmpOriginal; }
+			
 			if (ASMCheckBox->Checked)
 			{
 				startTime = clock();
-				ASMAdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, brightnessTrackbar->Value, imgSizeInBytes);
+				ASMAdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, brightnessTrackbar->Value, imgSizeInBytes);
 				finishTime = clock();
 				Brightness_asmTotal += finishTime - startTime;
 				Brightness_asmCount++;
@@ -508,7 +857,7 @@ namespace CppCLRWinformsProjekt {
 			else
 			{
 				startTime = clock();
-				AdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), brightnessTrackbar->Value);
+				AdjustBrightness((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, brightnessTrackbar->Value);
 				finishTime = clock();
 				Brightness_cppTotal += finishTime - startTime;
 				Brightness_cppCount++;
@@ -535,10 +884,13 @@ namespace CppCLRWinformsProjekt {
 			bool isChecked = negativeCheckbox->Checked;
 			long startTime, finishTime;
 
+			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
+			else { keptIMG = bmpOriginal; }
+
 			if(ASMCheckBox->Checked)
 			{
 				startTime = clock();
-				ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, imgSizeInBytes, isChecked);
+				ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, isChecked);
 				finishTime = clock();
 				Negative_asmTotal += finishTime - startTime;
 				Negative_asmCount++;
@@ -547,7 +899,7 @@ namespace CppCLRWinformsProjekt {
 			else
 			{
 				startTime = clock();
-				CPPNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, imgSizeInBytes, isChecked);
+				CPPNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, isChecked);
 				finishTime = clock();
 				Negative_cppTotal += finishTime - startTime;
 				Negative_cppCount++;
@@ -560,16 +912,20 @@ namespace CppCLRWinformsProjekt {
 		}
 
 		private: System::Void blurTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) 
-		{
+		{	
 			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
 			long startTime, finishTime;
 			int blurWidth = blurTrackbar->Value;
-			
+			blurLabel->Text = "Blur Width: " + blurTrackbar->Value.ToString();
+
+			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
+			else { keptIMG = bmpOriginal; }
+
 			if (ASMCheckBox->Checked)
 			{
 				hBlur = new unsigned char[imgSizeInBytes];
 				startTime = clock();
-				ASMBlurIMG(bmpFront->Height,bmpFront->Width,bmpOriginal,(unsigned char*)bmpData->Scan0.ToPointer(),hBlur,blurWidth);
+				ASMBlurIMG(bmpFront->Height,bmpFront->Width, keptIMG, (unsigned char*)bmpData->Scan0.ToPointer(),hBlur,blurWidth);
 				finishTime = clock();
 				Blur_asmTotal += finishTime - startTime;
 				Blur_asmCount++;
@@ -578,7 +934,7 @@ namespace CppCLRWinformsProjekt {
 			else
 			{
 				startTime = clock();
-				CPPBlurIMG((unsigned char*)bmpData->Scan0.ToPointer(), blurWidth);
+				CPPBlurIMG((unsigned char*)bmpData->Scan0.ToPointer(),keptIMG, blurWidth);
 				finishTime = clock();
 				Blur_cppTotal += finishTime - startTime;
 				Blur_cppCount++;
@@ -590,7 +946,114 @@ namespace CppCLRWinformsProjekt {
 			delete hBlur;
 		}
 
+		private: System::Void searchColorButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			colorChangeDialog->ShowDialog();
+			sColor = colorChangeDialog->Color;
+			searchColorText->Text = sColor.Name;
+			
+		}
+		private: System::Void newColorButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			colorChangeDialog->ShowDialog();
+			nColor = colorChangeDialog->Color;
+			newColorText->Text = nColor.Name;
+		}
+		private: System::Void ColorRangeScroll_Scroll(System::Object^ sender, System::EventArgs^ e) 
+		{
+			ColorRangeLabel->Text = "Color Range: " + ColorRangeScroll->Value.ToString();
+		}
+		private: System::Void rangeDropDown_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) 
+		{
+			if (rangeDropDown->SelectedIndex == -1) { ColorRangeScroll->Enabled = false; }
+			else { colorApplyButton->Enabled = true; }
+		}
+		private: System::Void resetButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
+			ResetIMG((unsigned char*)bmpData->Scan0.ToPointer(), bmpOriginal, imgSizeInBytes);
+			bmpFront->UnlockBits(bmpData);
 
-	}; 
+			pictureBoxImg->Image = bmpFront;
+			averageTimeLabel->Text = "Average (ms) : ";
+
+			brightnessTrackbar->Value = 0;
+			brightnessLabel->Text = "Brightness";
+			
+			blurTrackbar->Value = 0;
+			blurLabel->Text = "Blur Width";
+
+			ColorRangeScroll->Value = 0;
+			ColorRangeLabel->Text = "Color Range";
+			
+			rangeDropDown->ResetText();
+			
+			searchColorText->ResetText();
+			newColorText->ResetText();
+			
+			negativeCheckbox->Checked = false;
+			ASMCheckBox->Checked = false;
+			keepIMGCheckBox->Checked = false;
+
+			Brightness_cppCount = 0.0;
+			Brightness_cppTotal = 0.0;
+			Brightness_asmCount = 0.0;
+			Brightness_asmTotal = 0.0;
+			Negative_asmCount = 0.0;
+			Negative_asmTotal = 0.0;
+			Negative_cppTotal = 0.0;
+			Negative_cppCount = 0.0;
+			Blur_asmTotal = 0.0;
+			Blur_asmCount = 0.0;
+			Blur_cppTotal = 0.0;
+			Blur_cppCount = 0.0;
+			ColorChange_cppTotal = 0.0;
+			ColorChange_cppCount = 0.0;
+			ColorChange_asmTotal = 0.0;
+		}
+		private: System::Void colorApplyButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			if (searchColorText->Text->Equals(String::Empty) || newColorText->Text->Equals(String::Empty))
+			{
+				return;
+			}
+
+			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
+			long startTime, finishTime;
+			unsigned char brightnessValue = ColorRangeScroll->Value;
+
+			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
+			else { keptIMG = bmpOriginal;}
+
+			ResetIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes);
+
+			if (ASMCheckBox->Checked)
+			{
+				startTime = clock();
+				//ASMBlurIMG(bmpFront->Height, bmpFront->Width, bmpOriginal, (unsigned char*)bmpData->Scan0.ToPointer(), hBlur, blurWidth);
+				finishTime = clock();
+				ColorChange_asmTotal += finishTime - startTime;
+				ColorChange_asmCount++;
+				averageTimeLabel->Text = "Average using ASM: " + Math::Round(ColorChange_asmTotal / ColorChange_asmCount, 2) + "ms";
+			}
+			else
+			{
+				startTime = clock();
+				CPPColorChangeColorRange((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, sColor, nColor, brightnessValue, rangeDropDown->SelectedIndex);
+				finishTime = clock();
+				ColorChange_cppTotal += finishTime - startTime;
+				ColorChange_cppCount++;
+				averageTimeLabel->Text = "Average using C++: " + Math::Round(ColorChange_cppTotal / ColorChange_cppCount, 2) + "ms";
+
+			}
+			bmpFront->UnlockBits(bmpData);
+			pictureBoxImg->Image = bmpFront;
+		}
+		
+		private: System::Void keepIMGCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) 
+		{
+			keepLast = keepIMGCheckBox->Checked;
+		}
+	};
 	
 }
