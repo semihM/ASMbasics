@@ -99,6 +99,10 @@ namespace CppCLRWinformsProjekt {
 		static Rectangle imgRect;
 		BitmapData^ bmpData;
 
+		static int saveCounter = 1;
+		static String ^fileName;
+		static String^ lastAction = "";
+
 		static Color sColor, nColor;
 		static bool keepLast = false;
 
@@ -117,7 +121,6 @@ namespace CppCLRWinformsProjekt {
 		static double ColorChange_cppTotal = 0.0;
 		static double ColorChange_cppCount = 0.0;
 		static double ColorChange_asmTotal = 0.0;
-	
 		static double ColorChange_asmCount = 0.0;
 
 		void AdjustBrightness(unsigned char* bmp,unsigned char* org, short amount)
@@ -431,8 +434,8 @@ namespace CppCLRWinformsProjekt {
 
 	private: System::Windows::Forms::Button^ resetButton;
 	private: System::Windows::Forms::CheckBox^ keepIMGCheckBox;
-
-
+	private: System::Windows::Forms::ToolStripMenuItem^ saveMenuItem;
+	private: System::Windows::Forms::SaveFileDialog^ saveFileDialog;
 	private: System::ComponentModel::Container^ components;
 
 	#pragma region Windows Form Designer generated code
@@ -445,6 +448,7 @@ namespace CppCLRWinformsProjekt {
 			   this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
 			   this->fileToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			   this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			   this->saveMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			   this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			   this->pictureBoxImg = (gcnew System::Windows::Forms::PictureBox());
 			   this->averageTimeLabel = (gcnew System::Windows::Forms::Label());
@@ -470,6 +474,7 @@ namespace CppCLRWinformsProjekt {
 			   this->colorApplyButton = (gcnew System::Windows::Forms::Button());
 			   this->resetButton = (gcnew System::Windows::Forms::Button());
 			   this->keepIMGCheckBox = (gcnew System::Windows::Forms::CheckBox());
+			   this->saveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			   this->menuStrip1->SuspendLayout();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brightnessTrackbar))->BeginInit();
@@ -483,9 +488,9 @@ namespace CppCLRWinformsProjekt {
 			   this->menuStrip1->TabIndex = 0;
 			   this->menuStrip1->Text = L"menuStrip1";
 			   this->menuStrip1->ItemClicked += gcnew System::Windows::Forms::ToolStripItemClickedEventHandler(this, &Form1::menuStrip1_ItemClicked);
-			   this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+			   this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
 				   this->openToolStripMenuItem,
-					   this->exitToolStripMenuItem
+					   this->saveMenuItem, this->exitToolStripMenuItem
 			   });
 			   this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
 			   this->fileToolStripMenuItem->Size = System::Drawing::Size(37, 20);
@@ -494,11 +499,17 @@ namespace CppCLRWinformsProjekt {
 			   this->openToolStripMenuItem->Size = System::Drawing::Size(103, 22);
 			   this->openToolStripMenuItem->Text = L"&Open";
 			   this->openToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::openToolStripMenuItem_Click);
+			   this->saveMenuItem->Enabled = false;
+			   this->saveMenuItem->Name = L"saveMenuItem";
+			   this->saveMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->saveMenuItem->Text = L"&Save";
+			   this->saveMenuItem->Click += gcnew System::EventHandler(this, &Form1::saveMenuItem_Click);
 			   this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
 			   this->exitToolStripMenuItem->Size = System::Drawing::Size(103, 22);
 			   this->exitToolStripMenuItem->Text = L"&Exit";
 			   this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::exitToolStripMenuItem_Click);
-			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left)
+			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+				   | System::Windows::Forms::AnchorStyles::Left)
 				   | System::Windows::Forms::AnchorStyles::Right));
 			   this->pictureBoxImg->BackColor = System::Drawing::SystemColors::Control;
 			   this->pictureBoxImg->Location = System::Drawing::Point(13, 27);
@@ -521,7 +532,7 @@ namespace CppCLRWinformsProjekt {
 			   this->averageTimeLabel->TextAlign = System::Drawing::ContentAlignment::MiddleLeft;
 			   this->averageTimeLabel->Click += gcnew System::EventHandler(this, &Form1::label1_Click);
 			   this->dlgOpen->FileName = L"openFileDialog1";
-			   this->dlgOpen->Filter = L"JPEG|*.jpg|Bitmap|*.bmp|All Files|*.*";
+			   this->dlgOpen->Filter = L"JPEG|*.jpg|PNG|*.png|Bitmap|*.bmp|All Files|*.*";
 			   this->brightnessTrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->brightnessTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			   this->brightnessTrackbar->Enabled = false;
@@ -743,6 +754,7 @@ namespace CppCLRWinformsProjekt {
 			   this->keepIMGCheckBox->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			   this->keepIMGCheckBox->UseVisualStyleBackColor = false;
 			   this->keepIMGCheckBox->CheckedChanged += gcnew System::EventHandler(this, &Form1::keepIMGCheckBox_CheckedChanged);
+			   this->saveFileDialog->Filter = L"JPEG(*.jpg)|*.jpg|PNG(*.png)|*.png|Bitmap(*.bmp)|*.bmp";
 			   this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			   this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			   this->AutoValidate = System::Windows::Forms::AutoValidate::EnableAllowFocusChange;
@@ -773,7 +785,7 @@ namespace CppCLRWinformsProjekt {
 			   this->Controls->Add(this->menuStrip1);
 			   this->MainMenuStrip = this->menuStrip1;
 			   this->Name = L"Form1";
-			   this->Text = L"Form1";
+			   this->Text = L"IMG Proc";
 			   this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &Form1::Form1_FormClosing);
 			   this->Load += gcnew System::EventHandler(this, &Form1::Form1_Load);
 			   this->menuStrip1->ResumeLayout(false);
@@ -805,6 +817,16 @@ namespace CppCLRWinformsProjekt {
 
 					SaveOriginalImage(bmpFront);
 
+					String^ fullname = dlgOpen->SafeFileName;
+					int name_length = fullname->Length;
+					int i = name_length;
+					wchar_t dot = (wchar_t)'.';
+
+					// Store index of the extension starting
+					for (; i > 0; i--) {if (fullname[i - 1] == dot) {break;}}
+					// Write characters until extension starts
+					for (int j = 0; j < i-1; j++) {fileName += fullname[j];}
+
 					pictureBoxImg->Image = bmpFront;
 
 					ASMCheckBox->Enabled = true;
@@ -819,6 +841,7 @@ namespace CppCLRWinformsProjekt {
 					newColorText->Enabled = true;
 					rangeDropDown->Enabled = true;
 					keepIMGCheckBox->Enabled = true;
+					saveMenuItem->Enabled = true;
 
 					Brightness_cppTotal = 0.0;
 					Brightness_cppCount = 0.0;
@@ -866,6 +889,8 @@ namespace CppCLRWinformsProjekt {
 			bmpFront->UnlockBits(bmpData);
 
 			pictureBoxImg->Image = bmpFront;
+
+			lastAction = "_brightness_changed";
 		}
 
 		private: System::Void Form1_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
@@ -909,6 +934,7 @@ namespace CppCLRWinformsProjekt {
 
 			pictureBoxImg->Image = bmpFront;
 
+			lastAction = "_negated";
 		}
 
 		private: System::Void blurTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) 
@@ -944,6 +970,8 @@ namespace CppCLRWinformsProjekt {
 			bmpFront->UnlockBits(bmpData);
 			pictureBoxImg->Image = bmpFront;
 			delete hBlur;
+
+			lastAction = "_blurred";
 		}
 
 		private: System::Void searchColorButton_Click(System::Object^ sender, System::EventArgs^ e) 
@@ -1010,6 +1038,8 @@ namespace CppCLRWinformsProjekt {
 			ColorChange_cppTotal = 0.0;
 			ColorChange_cppCount = 0.0;
 			ColorChange_asmTotal = 0.0;
+
+			lastAction = "";
 		}
 		private: System::Void colorApplyButton_Click(System::Object^ sender, System::EventArgs^ e) 
 		{
@@ -1048,11 +1078,28 @@ namespace CppCLRWinformsProjekt {
 			}
 			bmpFront->UnlockBits(bmpData);
 			pictureBoxImg->Image = bmpFront;
+			lastAction = "_color_range_changed";
 		}
 		
 		private: System::Void keepIMGCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) 
 		{
 			keepLast = keepIMGCheckBox->Checked;
+		}
+		private: System::Void saveMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
+		{	
+			saveFileDialog->FileName = fileName + lastAction + "_" + saveCounter + "_" + DateTime::Now;
+			if (saveFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+			{
+				try
+				{	
+					bmpFront->Save(saveFileDialog->FileName);
+					saveCounter++;
+				}
+				catch (...)
+				{
+					MessageBox::Show("File could not be saved!");
+				}
+			}
 		}
 	};
 	
