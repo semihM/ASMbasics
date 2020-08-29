@@ -105,6 +105,7 @@ namespace CppCLRWinformsProjekt {
 
 		static Color sColor, nColor;
 		static bool keepLast = false;
+		static bool applyNeg = false;
 
 		static double Brightness_cppCount = 0.0;
 		static double Brightness_cppTotal = 0.0;
@@ -122,6 +123,10 @@ namespace CppCLRWinformsProjekt {
 		static double ColorChange_cppCount = 0.0;
 		static double ColorChange_asmTotal = 0.0;
 		static double ColorChange_asmCount = 0.0;
+		static double Greyscale_asmCount = 0.0;
+		static double Greyscale_asmTotal = 0.0;
+		static double Greyscale_cppTotal = 0.0;
+		static double Greyscale_cppCount = 0.0;
 
 		void AdjustBrightness(unsigned char* bmp,unsigned char* org, short amount)
 		{
@@ -135,23 +140,24 @@ namespace CppCLRWinformsProjekt {
 
 		void ResetIMG(unsigned char* bmp, unsigned char* original, long imgSize)
 		{
-			for (int i = 0; i < imgSizeInBytes; i++)
+			for (int i = 0; i < imgSize; i++)
 			{
 				bmp[i] = original[i];
 			}
 		}
+
 		void CPPNegativeIMG(unsigned char* bmp, unsigned char* original,long imgSize,bool isChecked)
 		{	
 			if(isChecked)
 			{
-				for (int i = 0; i < imgSizeInBytes; i++)
+				for (int i = 0; i < imgSize; i++)
 				{
 					bmp[i] = 255 - original[i];
 				}
 			}
 			else
 			{
-				for (int i = 0; i < imgSizeInBytes; i++)
+				for (int i = 0; i < imgSize; i++)
 				{
 					bmp[i] = original[i];
 				}
@@ -340,6 +346,31 @@ namespace CppCLRWinformsProjekt {
 				}
 			}
 		}
+
+		void CPPGreyscaleIMG(unsigned char* bmp, unsigned char* original, long imgSize)
+		{
+			float total;
+			unsigned char greyed;
+			float org[3];
+			for (int i = 0; i < imgSize; i+=3)
+			{	
+				org[0] = (float)original[i];
+				org[1] = (float)original[i+1];
+				org[2] = (float)original[i+2];
+				total = org[0]+ org[1]+ org[2];
+
+				if (total == 0)
+				{
+					continue;
+				}
+				greyed = (unsigned char)( ((org[0] / total) * org[0]) + ((org[1] / total) * org[1]) + ((org[2] / total) * org[2]));
+				bmp[i] = greyed;
+				bmp[i+1] = greyed;
+				bmp[i+2] = greyed;
+			}
+			
+		}
+
 		void ClearOriginalImage()
 		{
 			if (bmpOriginal != nullptr) { delete[] bmpOriginal; }
@@ -370,13 +401,11 @@ namespace CppCLRWinformsProjekt {
 
 		}
 
-		unsigned char* Copy(unsigned char* bmp) 
+		void Copy(unsigned char* bmp,unsigned char* dest) 
 		{
-			unsigned char* temp = new unsigned char[imgSizeInBytes];
 			for (int i = 0; i < imgSizeInBytes; i++) {
-				temp[i] = (char)bmp[i];
+				dest[i] = (char)bmp[i];
 			}
-			return temp;
 		}
 
 		Form1(void)
@@ -408,7 +437,7 @@ namespace CppCLRWinformsProjekt {
 	private: System::Windows::Forms::Label^ brightnessLabel;
 
 	private: System::Windows::Forms::Label^ optionsLabel;
-	private: System::Windows::Forms::CheckBox^ negativeCheckbox;
+
 
 	private: System::Windows::Forms::TrackBar^ blurTrackbar;
 	private: System::Windows::Forms::Label^ blurLabel;
@@ -438,6 +467,9 @@ namespace CppCLRWinformsProjekt {
 	private: System::Windows::Forms::SaveFileDialog^ saveFileDialog;
 	private: System::ComponentModel::Container^ components;
 
+	private: System::Windows::Forms::Button^ greyscaleButton;
+	private: System::Windows::Forms::Button^ negativeButton;
+
 	#pragma region Windows Form Designer generated code
 		   /// <summary>
 		   /// Erforderliche Methode für die Designerunterstützung.
@@ -456,7 +488,6 @@ namespace CppCLRWinformsProjekt {
 			   this->brightnessTrackbar = (gcnew System::Windows::Forms::TrackBar());
 			   this->brightnessLabel = (gcnew System::Windows::Forms::Label());
 			   this->optionsLabel = (gcnew System::Windows::Forms::Label());
-			   this->negativeCheckbox = (gcnew System::Windows::Forms::CheckBox());
 			   this->blurTrackbar = (gcnew System::Windows::Forms::TrackBar());
 			   this->blurLabel = (gcnew System::Windows::Forms::Label());
 			   this->ASMCheckBox = (gcnew System::Windows::Forms::CheckBox());
@@ -475,6 +506,8 @@ namespace CppCLRWinformsProjekt {
 			   this->resetButton = (gcnew System::Windows::Forms::Button());
 			   this->keepIMGCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			   this->saveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
+			   this->greyscaleButton = (gcnew System::Windows::Forms::Button());
+			   this->negativeButton = (gcnew System::Windows::Forms::Button());
 			   this->menuStrip1->SuspendLayout();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBoxImg))->BeginInit();
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brightnessTrackbar))->BeginInit();
@@ -484,7 +517,7 @@ namespace CppCLRWinformsProjekt {
 			   this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->fileToolStripMenuItem });
 			   this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			   this->menuStrip1->Name = L"menuStrip1";
-			   this->menuStrip1->Size = System::Drawing::Size(746, 24);
+			   this->menuStrip1->Size = System::Drawing::Size(883, 24);
 			   this->menuStrip1->TabIndex = 0;
 			   this->menuStrip1->Text = L"menuStrip1";
 			   this->menuStrip1->ItemClicked += gcnew System::Windows::Forms::ToolStripItemClickedEventHandler(this, &Form1::menuStrip1_ItemClicked);
@@ -514,7 +547,7 @@ namespace CppCLRWinformsProjekt {
 			   this->pictureBoxImg->BackColor = System::Drawing::SystemColors::Control;
 			   this->pictureBoxImg->Location = System::Drawing::Point(13, 27);
 			   this->pictureBoxImg->Name = L"pictureBoxImg";
-			   this->pictureBoxImg->Size = System::Drawing::Size(722, 359);
+			   this->pictureBoxImg->Size = System::Drawing::Size(859, 395);
 			   this->pictureBoxImg->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
 			   this->pictureBoxImg->TabIndex = 1;
 			   this->pictureBoxImg->TabStop = false;
@@ -523,7 +556,7 @@ namespace CppCLRWinformsProjekt {
 			   this->averageTimeLabel->BackColor = System::Drawing::SystemColors::GradientActiveCaption;
 			   this->averageTimeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
-			   this->averageTimeLabel->Location = System::Drawing::Point(13, 610);
+			   this->averageTimeLabel->Location = System::Drawing::Point(13, 646);
 			   this->averageTimeLabel->Margin = System::Windows::Forms::Padding(0, 0, 3, 0);
 			   this->averageTimeLabel->Name = L"averageTimeLabel";
 			   this->averageTimeLabel->Size = System::Drawing::Size(120, 20);
@@ -536,7 +569,7 @@ namespace CppCLRWinformsProjekt {
 			   this->brightnessTrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->brightnessTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			   this->brightnessTrackbar->Enabled = false;
-			   this->brightnessTrackbar->Location = System::Drawing::Point(12, 420);
+			   this->brightnessTrackbar->Location = System::Drawing::Point(12, 456);
 			   this->brightnessTrackbar->Maximum = 255;
 			   this->brightnessTrackbar->Minimum = -255;
 			   this->brightnessTrackbar->Name = L"brightnessTrackbar";
@@ -550,7 +583,7 @@ namespace CppCLRWinformsProjekt {
 			   this->brightnessLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->brightnessLabel->ForeColor = System::Drawing::Color::White;
-			   this->brightnessLabel->Location = System::Drawing::Point(12, 394);
+			   this->brightnessLabel->Location = System::Drawing::Point(12, 430);
 			   this->brightnessLabel->Name = L"brightnessLabel";
 			   this->brightnessLabel->Size = System::Drawing::Size(206, 26);
 			   this->brightnessLabel->TabIndex = 10;
@@ -562,27 +595,17 @@ namespace CppCLRWinformsProjekt {
 			   this->optionsLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->optionsLabel->ForeColor = System::Drawing::Color::White;
-			   this->optionsLabel->Location = System::Drawing::Point(481, 394);
+			   this->optionsLabel->Location = System::Drawing::Point(236, 430);
 			   this->optionsLabel->Name = L"optionsLabel";
 			   this->optionsLabel->Size = System::Drawing::Size(143, 26);
 			   this->optionsLabel->TabIndex = 11;
 			   this->optionsLabel->Text = L"Options";
 			   this->optionsLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
-			   this->negativeCheckbox->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
-			   this->negativeCheckbox->AutoSize = true;
-			   this->negativeCheckbox->Enabled = false;
-			   this->negativeCheckbox->Location = System::Drawing::Point(481, 423);
-			   this->negativeCheckbox->Name = L"negativeCheckbox";
-			   this->negativeCheckbox->Size = System::Drawing::Size(69, 17);
-			   this->negativeCheckbox->TabIndex = 12;
-			   this->negativeCheckbox->Text = L"Negative";
-			   this->negativeCheckbox->UseVisualStyleBackColor = true;
-			   this->negativeCheckbox->CheckedChanged += gcnew System::EventHandler(this, &Form1::negativeCheckbox_CheckedChanged);
 			   this->blurTrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->blurTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			   this->blurTrackbar->Enabled = false;
 			   this->blurTrackbar->LargeChange = 10;
-			   this->blurTrackbar->Location = System::Drawing::Point(12, 504);
+			   this->blurTrackbar->Location = System::Drawing::Point(12, 540);
 			   this->blurTrackbar->Margin = System::Windows::Forms::Padding(3, 0, 3, 3);
 			   this->blurTrackbar->Maximum = 100;
 			   this->blurTrackbar->Name = L"blurTrackbar";
@@ -596,7 +619,7 @@ namespace CppCLRWinformsProjekt {
 			   this->blurLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->blurLabel->ForeColor = System::Drawing::Color::White;
-			   this->blurLabel->Location = System::Drawing::Point(12, 478);
+			   this->blurLabel->Location = System::Drawing::Point(12, 514);
 			   this->blurLabel->Name = L"blurLabel";
 			   this->blurLabel->Size = System::Drawing::Size(206, 26);
 			   this->blurLabel->TabIndex = 14;
@@ -611,7 +634,7 @@ namespace CppCLRWinformsProjekt {
 			   this->ASMCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->ASMCheckBox->ForeColor = System::Drawing::Color::White;
-			   this->ASMCheckBox->Location = System::Drawing::Point(12, 552);
+			   this->ASMCheckBox->Location = System::Drawing::Point(694, 647);
 			   this->ASMCheckBox->Name = L"ASMCheckBox";
 			   this->ASMCheckBox->Size = System::Drawing::Size(78, 17);
 			   this->ASMCheckBox->TabIndex = 15;
@@ -620,7 +643,7 @@ namespace CppCLRWinformsProjekt {
 			   this->ColorRangeScroll->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->ColorRangeScroll->BackColor = System::Drawing::SystemColors::WindowFrame;
 			   this->ColorRangeScroll->Enabled = false;
-			   this->ColorRangeScroll->Location = System::Drawing::Point(277, 504);
+			   this->ColorRangeScroll->Location = System::Drawing::Point(697, 522);
 			   this->ColorRangeScroll->Maximum = 255;
 			   this->ColorRangeScroll->Name = L"ColorRangeScroll";
 			   this->ColorRangeScroll->Size = System::Drawing::Size(176, 45);
@@ -632,7 +655,7 @@ namespace CppCLRWinformsProjekt {
 			   this->ColorRangeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->ColorRangeLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
-			   this->ColorRangeLabel->Location = System::Drawing::Point(277, 485);
+			   this->ColorRangeLabel->Location = System::Drawing::Point(697, 503);
 			   this->ColorRangeLabel->Name = L"ColorRangeLabel";
 			   this->ColorRangeLabel->Size = System::Drawing::Size(175, 18);
 			   this->ColorRangeLabel->TabIndex = 16;
@@ -643,7 +666,7 @@ namespace CppCLRWinformsProjekt {
 			   this->RangeTypeLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.75, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->RangeTypeLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
-			   this->RangeTypeLabel->Location = System::Drawing::Point(277, 552);
+			   this->RangeTypeLabel->Location = System::Drawing::Point(697, 569);
 			   this->RangeTypeLabel->Name = L"RangeTypeLabel";
 			   this->RangeTypeLabel->Size = System::Drawing::Size(96, 21);
 			   this->RangeTypeLabel->TabIndex = 17;
@@ -653,7 +676,7 @@ namespace CppCLRWinformsProjekt {
 			   this->rangeDropDown->Enabled = false;
 			   this->rangeDropDown->FormattingEnabled = true;
 			   this->rangeDropDown->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"Dimmer", L"Brighter", L"Centered" });
-			   this->rangeDropDown->Location = System::Drawing::Point(392, 552);
+			   this->rangeDropDown->Location = System::Drawing::Point(812, 570);
 			   this->rangeDropDown->Name = L"rangeDropDown";
 			   this->rangeDropDown->Size = System::Drawing::Size(61, 21);
 			   this->rangeDropDown->TabIndex = 18;
@@ -663,7 +686,7 @@ namespace CppCLRWinformsProjekt {
 			   this->searchColorLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->searchColorLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
-			   this->searchColorLabel->Location = System::Drawing::Point(277, 394);
+			   this->searchColorLabel->Location = System::Drawing::Point(697, 430);
 			   this->searchColorLabel->Name = L"searchColorLabel";
 			   this->searchColorLabel->Size = System::Drawing::Size(70, 15);
 			   this->searchColorLabel->TabIndex = 19;
@@ -674,7 +697,7 @@ namespace CppCLRWinformsProjekt {
 			   this->newColorLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->newColorLabel->ForeColor = System::Drawing::SystemColors::ButtonFace;
-			   this->newColorLabel->Location = System::Drawing::Point(376, 394);
+			   this->newColorLabel->Location = System::Drawing::Point(796, 430);
 			   this->newColorLabel->Name = L"newColorLabel";
 			   this->newColorLabel->Size = System::Drawing::Size(74, 15);
 			   this->newColorLabel->TabIndex = 20;
@@ -682,20 +705,20 @@ namespace CppCLRWinformsProjekt {
 			   this->newColorLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			   this->searchColorText->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->searchColorText->Enabled = false;
-			   this->searchColorText->Location = System::Drawing::Point(277, 414);
+			   this->searchColorText->Location = System::Drawing::Point(697, 450);
 			   this->searchColorText->Name = L"searchColorText";
 			   this->searchColorText->Size = System::Drawing::Size(70, 20);
 			   this->searchColorText->TabIndex = 21;
 			   this->newColorText->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->newColorText->Enabled = false;
-			   this->newColorText->Location = System::Drawing::Point(376, 414);
+			   this->newColorText->Location = System::Drawing::Point(796, 450);
 			   this->newColorText->Name = L"newColorText";
 			   this->newColorText->Size = System::Drawing::Size(75, 20);
 			   this->newColorText->TabIndex = 22;
 			   this->searchColorButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->searchColorButton->CausesValidation = false;
 			   this->searchColorButton->Enabled = false;
-			   this->searchColorButton->Location = System::Drawing::Point(277, 440);
+			   this->searchColorButton->Location = System::Drawing::Point(697, 476);
 			   this->searchColorButton->Name = L"searchColorButton";
 			   this->searchColorButton->Size = System::Drawing::Size(70, 24);
 			   this->searchColorButton->TabIndex = 23;
@@ -704,7 +727,7 @@ namespace CppCLRWinformsProjekt {
 			   this->searchColorButton->Click += gcnew System::EventHandler(this, &Form1::searchColorButton_Click);
 			   this->newColorButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->newColorButton->Enabled = false;
-			   this->newColorButton->Location = System::Drawing::Point(376, 440);
+			   this->newColorButton->Location = System::Drawing::Point(796, 476);
 			   this->newColorButton->Name = L"newColorButton";
 			   this->newColorButton->Size = System::Drawing::Size(74, 24);
 			   this->newColorButton->TabIndex = 24;
@@ -717,9 +740,9 @@ namespace CppCLRWinformsProjekt {
 			   this->colorApplyButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->colorApplyButton->CausesValidation = false;
 			   this->colorApplyButton->Enabled = false;
-			   this->colorApplyButton->Location = System::Drawing::Point(277, 603);
+			   this->colorApplyButton->Location = System::Drawing::Point(694, 594);
 			   this->colorApplyButton->Name = L"colorApplyButton";
-			   this->colorApplyButton->Size = System::Drawing::Size(176, 24);
+			   this->colorApplyButton->Size = System::Drawing::Size(179, 24);
 			   this->colorApplyButton->TabIndex = 25;
 			   this->colorApplyButton->Text = L"Change Colors";
 			   this->colorApplyButton->UseVisualStyleBackColor = true;
@@ -730,7 +753,7 @@ namespace CppCLRWinformsProjekt {
 			   this->resetButton->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->resetButton->ForeColor = System::Drawing::SystemColors::ButtonHighlight;
-			   this->resetButton->Location = System::Drawing::Point(675, 606);
+			   this->resetButton->Location = System::Drawing::Point(810, 647);
 			   this->resetButton->Name = L"resetButton";
 			   this->resetButton->Size = System::Drawing::Size(60, 21);
 			   this->resetButton->TabIndex = 26;
@@ -746,20 +769,42 @@ namespace CppCLRWinformsProjekt {
 			   this->keepIMGCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(0)));
 			   this->keepIMGCheckBox->ForeColor = System::Drawing::SystemColors::ControlLightLight;
-			   this->keepIMGCheckBox->Location = System::Drawing::Point(97, 552);
+			   this->keepIMGCheckBox->Location = System::Drawing::Point(236, 522);
 			   this->keepIMGCheckBox->Name = L"keepIMGCheckBox";
-			   this->keepIMGCheckBox->Size = System::Drawing::Size(121, 17);
+			   this->keepIMGCheckBox->Size = System::Drawing::Size(116, 17);
 			   this->keepIMGCheckBox->TabIndex = 27;
-			   this->keepIMGCheckBox->Text = L"Keep Last Image";
+			   this->keepIMGCheckBox->Text = L"Apply to current";
 			   this->keepIMGCheckBox->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			   this->keepIMGCheckBox->UseVisualStyleBackColor = false;
 			   this->keepIMGCheckBox->CheckedChanged += gcnew System::EventHandler(this, &Form1::keepIMGCheckBox_CheckedChanged);
 			   this->saveFileDialog->Filter = L"JPEG(*.jpg)|*.jpg|PNG(*.png)|*.png|Bitmap(*.bmp)|*.bmp";
+			   this->greyscaleButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->greyscaleButton->CausesValidation = false;
+			   this->greyscaleButton->Enabled = false;
+			   this->greyscaleButton->Location = System::Drawing::Point(236, 489);
+			   this->greyscaleButton->Name = L"greyscaleButton";
+			   this->greyscaleButton->Size = System::Drawing::Size(69, 24);
+			   this->greyscaleButton->TabIndex = 28;
+			   this->greyscaleButton->Text = L"Greyscale";
+			   this->greyscaleButton->UseVisualStyleBackColor = true;
+			   this->greyscaleButton->Click += gcnew System::EventHandler(this, &Form1::greyscaleButton_Click);
+			   this->negativeButton->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
+			   this->negativeButton->CausesValidation = false;
+			   this->negativeButton->Enabled = false;
+			   this->negativeButton->Location = System::Drawing::Point(236, 459);
+			   this->negativeButton->Name = L"negativeButton";
+			   this->negativeButton->Size = System::Drawing::Size(69, 24);
+			   this->negativeButton->TabIndex = 29;
+			   this->negativeButton->Text = L"Negative";
+			   this->negativeButton->UseVisualStyleBackColor = true;
+			   this->negativeButton->Click += gcnew System::EventHandler(this, &Form1::negativeButton_Click);
 			   this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			   this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			   this->AutoValidate = System::Windows::Forms::AutoValidate::EnableAllowFocusChange;
 			   this->BackColor = System::Drawing::SystemColors::ButtonShadow;
-			   this->ClientSize = System::Drawing::Size(746, 639);
+			   this->ClientSize = System::Drawing::Size(883, 675);
+			   this->Controls->Add(this->negativeButton);
+			   this->Controls->Add(this->greyscaleButton);
 			   this->Controls->Add(this->keepIMGCheckBox);
 			   this->Controls->Add(this->resetButton);
 			   this->Controls->Add(this->colorApplyButton);
@@ -776,7 +821,6 @@ namespace CppCLRWinformsProjekt {
 			   this->Controls->Add(this->ASMCheckBox);
 			   this->Controls->Add(this->blurLabel);
 			   this->Controls->Add(this->blurTrackbar);
-			   this->Controls->Add(this->negativeCheckbox);
 			   this->Controls->Add(this->optionsLabel);
 			   this->Controls->Add(this->brightnessLabel);
 			   this->Controls->Add(this->brightnessTrackbar);
@@ -812,11 +856,18 @@ namespace CppCLRWinformsProjekt {
 			if (dlgOpen->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 			{
 				try
-				{
+				{	
 					bmpFront = (Bitmap^)Image::FromFile(dlgOpen->FileName);
-
-					SaveOriginalImage(bmpFront);
-
+					if (!bmpFront->PixelFormat.Equals(PixelFormat::Format24bppRgb) )
+					{	
+						MessageBox::Show("Image's bit depth should be 24, not " + bmpFront->PixelFormat.ToString());
+						return;
+					}
+					else 
+					{
+						SaveOriginalImage(bmpFront);
+					}
+					
 					String^ fullname = dlgOpen->SafeFileName;
 					int name_length = fullname->Length;
 					int i = name_length;
@@ -828,11 +879,10 @@ namespace CppCLRWinformsProjekt {
 					for (int j = 0; j < i-1; j++) {fileName += fullname[j];}
 
 					pictureBoxImg->Image = bmpFront;
-
+					
 					ASMCheckBox->Enabled = true;
 					brightnessTrackbar->Enabled = true;
 					blurTrackbar->Enabled = true;
-					negativeCheckbox->Enabled = true;
 					ColorRangeScroll->Enabled = true;
 					resetButton->Enabled = true;
 					searchColorButton->Enabled = true;
@@ -842,19 +892,36 @@ namespace CppCLRWinformsProjekt {
 					rangeDropDown->Enabled = true;
 					keepIMGCheckBox->Enabled = true;
 					saveMenuItem->Enabled = true;
+					negativeButton->Enabled = true;
+					greyscaleButton->Enabled = true;
+					rangeDropDown->Enabled = true;
 
 					Brightness_cppTotal = 0.0;
 					Brightness_cppCount = 0.0;
 					Brightness_asmCount = 0.0;
 					Brightness_asmTotal = 0.0;
+					Blur_cppTotal = 0.0;
+					Blur_cppCount = 0.0;
+					Blur_asmCount = 0.0;
+					Blur_asmTotal = 0.0;
 					Negative_asmCount = 0.0;
 					Negative_asmTotal = 0.0;
 					Negative_cppCount = 0.0;
 					Negative_cppTotal = 0.0;
+					Greyscale_asmCount = 0.0;
+					Greyscale_asmTotal = 0.0;
+					Greyscale_cppCount = 0.0;
+					Greyscale_cppTotal = 0.0;
+					ColorChange_asmCount = 0.0;
+					ColorChange_asmTotal = 0.0;
+					ColorChange_cppCount = 0.0;
+					ColorChange_cppTotal = 0.0;
+
+					keptIMG = new unsigned char[imgSizeInBytes];
 				}
-				catch (...)
+				catch (Exception ^err)
 				{
-					MessageBox::Show("File could not be opened!");
+					MessageBox::Show("File could not be opened!\n" + err->Message);
 				}
 			}
 		}
@@ -864,10 +931,9 @@ namespace CppCLRWinformsProjekt {
 			long startTime, finishTime;
 			brightnessLabel->Text = "Brightness: " + brightnessTrackbar->Value.ToString();
 
-		
-			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
-			else { keptIMG = bmpOriginal; }
-			
+			if (keepLast) { Copy((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG); }
+			else { Copy(bmpOriginal, keptIMG); }
+
 			if (ASMCheckBox->Checked)
 			{
 				startTime = clock();
@@ -903,40 +969,6 @@ namespace CppCLRWinformsProjekt {
 
 		}
 
-		private: System::Void negativeCheckbox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) 
-		{
-			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
-			bool isChecked = negativeCheckbox->Checked;
-			long startTime, finishTime;
-
-			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
-			else { keptIMG = bmpOriginal; }
-
-			if(ASMCheckBox->Checked)
-			{
-				startTime = clock();
-				ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, isChecked);
-				finishTime = clock();
-				Negative_asmTotal += finishTime - startTime;
-				Negative_asmCount++;
-				averageTimeLabel->Text = "Average using ASM: " + Math::Round(Negative_asmTotal / Negative_asmCount, 2) + "ms";
-			}
-			else
-			{
-				startTime = clock();
-				CPPNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, isChecked);
-				finishTime = clock();
-				Negative_cppTotal += finishTime - startTime;
-				Negative_cppCount++;
-				averageTimeLabel->Text = "Average using C++: " + Math::Round(Negative_cppTotal / Negative_cppCount, 2) + "ms";
-			}
-			bmpFront->UnlockBits(bmpData);
-
-			pictureBoxImg->Image = bmpFront;
-
-			lastAction = "_negated";
-		}
-
 		private: System::Void blurTrackbar_Scroll(System::Object^ sender, System::EventArgs^ e) 
 		{	
 			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
@@ -944,8 +976,8 @@ namespace CppCLRWinformsProjekt {
 			int blurWidth = blurTrackbar->Value;
 			blurLabel->Text = "Blur Width: " + blurTrackbar->Value.ToString();
 
-			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
-			else { keptIMG = bmpOriginal; }
+			if (keepLast) { Copy((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG); }
+			else { Copy(bmpOriginal, keptIMG); }
 
 			if (ASMCheckBox->Checked)
 			{
@@ -1003,7 +1035,7 @@ namespace CppCLRWinformsProjekt {
 			bmpFront->UnlockBits(bmpData);
 
 			pictureBoxImg->Image = bmpFront;
-			averageTimeLabel->Text = "Average (ms) : ";
+			averageTimeLabel->Text = "Average (ms) :-";
 
 			brightnessTrackbar->Value = 0;
 			brightnessLabel->Text = "Brightness";
@@ -1019,27 +1051,34 @@ namespace CppCLRWinformsProjekt {
 			searchColorText->ResetText();
 			newColorText->ResetText();
 			
-			negativeCheckbox->Checked = false;
 			ASMCheckBox->Checked = false;
 			keepIMGCheckBox->Checked = false;
+			applyNeg = false;
 
-			Brightness_cppCount = 0.0;
 			Brightness_cppTotal = 0.0;
+			Brightness_cppCount = 0.0;
 			Brightness_asmCount = 0.0;
 			Brightness_asmTotal = 0.0;
-			Negative_asmCount = 0.0;
-			Negative_asmTotal = 0.0;
-			Negative_cppTotal = 0.0;
-			Negative_cppCount = 0.0;
-			Blur_asmTotal = 0.0;
-			Blur_asmCount = 0.0;
 			Blur_cppTotal = 0.0;
 			Blur_cppCount = 0.0;
-			ColorChange_cppTotal = 0.0;
-			ColorChange_cppCount = 0.0;
+			Blur_asmCount = 0.0;
+			Blur_asmTotal = 0.0;
+			Negative_asmCount = 0.0;
+			Negative_asmTotal = 0.0;
+			Negative_cppCount = 0.0;
+			Negative_cppTotal = 0.0;
+			Greyscale_asmCount = 0.0;
+			Greyscale_asmTotal = 0.0;
+			Greyscale_cppCount = 0.0;
+			Greyscale_cppTotal = 0.0;
+			ColorChange_asmCount = 0.0;
 			ColorChange_asmTotal = 0.0;
+			ColorChange_cppCount = 0.0;
+			ColorChange_cppTotal = 0.0;
 
 			lastAction = "";
+
+			keptIMG = new unsigned char[imgSizeInBytes];
 		}
 		private: System::Void colorApplyButton_Click(System::Object^ sender, System::EventArgs^ e) 
 		{
@@ -1052,10 +1091,12 @@ namespace CppCLRWinformsProjekt {
 			long startTime, finishTime;
 			unsigned char brightnessValue = ColorRangeScroll->Value;
 
-			if (keepLast) { keptIMG = Copy((unsigned char*)bmpData->Scan0.ToPointer()); }
-			else { keptIMG = bmpOriginal;}
-
-			ResetIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes);
+			if (keepLast) { Copy((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG);
+			}
+			else { 
+				Copy(bmpOriginal, keptIMG);
+				ResetIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes);
+			}
 
 			if (ASMCheckBox->Checked)
 			{
@@ -1087,7 +1128,7 @@ namespace CppCLRWinformsProjekt {
 		}
 		private: System::Void saveMenuItem_Click(System::Object^ sender, System::EventArgs^ e) 
 		{	
-			saveFileDialog->FileName = fileName + lastAction + "_" + saveCounter + "_" + DateTime::Now;
+			saveFileDialog->FileName = fileName + lastAction + "_" + saveCounter + "_" + DateTime::Now.ToString("yyyyMMdd-hh_mm_ss");
 			if (saveFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 			{
 				try
@@ -1101,6 +1142,72 @@ namespace CppCLRWinformsProjekt {
 				}
 			}
 		}
-	};
+		private: System::Void negativeButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{	
+			applyNeg = !applyNeg;
+
+			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
+			long startTime, finishTime;
+
+			if (keepLast) { Copy((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG); applyNeg = true; }
+			else { Copy(bmpOriginal, keptIMG); }
+
+			if (ASMCheckBox->Checked)
+			{
+				startTime = clock();
+				ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, applyNeg);
+				finishTime = clock();
+				Negative_asmTotal += finishTime - startTime;
+				Negative_asmCount++;
+				averageTimeLabel->Text = "Average using ASM: " + Math::Round(Negative_asmTotal / Negative_asmCount, 2) + "ms";
+			}
+			else
+			{
+				startTime = clock();
+				CPPNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, applyNeg);
+				finishTime = clock();
+				Negative_cppTotal += finishTime - startTime;
+				Negative_cppCount++;
+				averageTimeLabel->Text = "Average using C++: " + Math::Round(Negative_cppTotal / Negative_cppCount, 2) + "ms";
+			}
+			bmpFront->UnlockBits(bmpData);
+
+			pictureBoxImg->Image = bmpFront;
+
+			lastAction = "_negated";
+		}
+		private: System::Void greyscaleButton_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			bmpData = bmpFront->LockBits(imgRect, ImageLockMode::WriteOnly, PixelFormat::Format24bppRgb);
+			long startTime, finishTime;
+
+			if (keepLast) { Copy((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG); }
+			else { Copy(bmpOriginal, keptIMG); }
+
+			if (ASMCheckBox->Checked)
+			{
+				startTime = clock();
+				//ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, applyNeg);
+				finishTime = clock();
+				Negative_asmTotal += finishTime - startTime;
+				Negative_asmCount++;
+				averageTimeLabel->Text = "Average using ASM: " + Math::Round(Negative_asmTotal / Negative_asmCount, 2) + "ms";
+			}
+			else
+			{
+				startTime = clock();
+				CPPGreyscaleIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes);
+				finishTime = clock();
+				Greyscale_cppTotal += finishTime - startTime;
+				Greyscale_cppCount++;
+				averageTimeLabel->Text = "Average using C++: " + Math::Round(Greyscale_cppTotal / Greyscale_cppCount, 2) + "ms";
+			}
+			bmpFront->UnlockBits(bmpData);
+
+			pictureBoxImg->Image = bmpFront;
+
+			lastAction = "_greyscaled";
+		}
+};
 	
 }
