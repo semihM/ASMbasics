@@ -1,6 +1,8 @@
 # ASMbasics
 ## Assembly and C++ codes used in Chris Rose's youtube channel "What's a Creel?"
 
+## Branch Info
+This branch is **ONLY** for the "Practical x64 Assembly" tutorials' codes
 ### Chris Rose's book ["Assembly Language Succinctly"](https://www.syncfusion.com/ebooks/confirmation/assemblylanguage) 
 
 ### Tutorials' playlists:
@@ -12,3 +14,4 @@
 - Only includes "Modern x64 Assembly" playlist's codes
 #### v0.2
 - Includes "Modern x64 Assembly" playlist's codes and most of the "Practical x64 Assembly" playlist's codes and a 24bit image processing program.
+
