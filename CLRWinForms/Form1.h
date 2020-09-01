@@ -259,7 +259,7 @@ namespace CppCLRWinformsProjekt {
 
 			for (int p = 0; p < imgSizeInBytes; p += 3)
 			{
-				convert2HSL((float)bmp[p], (float)bmp[p + 1], (float)bmp[p + 2], temphsl);
+				convert2HSL((float)bmp[p+2], (float)bmp[p + 1], (float)bmp[p], temphsl);
 				temphue = temphsl[0];
 				tempsat = temphsl[1];
 				templum = temphsl[2];
@@ -334,15 +334,15 @@ namespace CppCLRWinformsProjekt {
 			{
 				c -= 1.0;
 			}
-			else if (c < 0.166666666)
+			if (c < 0.166666666)
 			{
 				return d + (e - d) * 6.0 * c;
 			}
-			else if (c < 0.5)
+			if (c < 0.5)
 			{
 				return e;
 			}
-			else if (c < 0.6666666666)
+			if (c < 0.6666666666)
 			{
 				return d + (e - d) * (0.6666666666 - c) * 6.0;
 			}
@@ -634,7 +634,7 @@ namespace CppCLRWinformsProjekt {
 			   this->optionsLabel->Name = L"optionsLabel";
 			   this->optionsLabel->Size = System::Drawing::Size(143, 26);
 			   this->optionsLabel->TabIndex = 11;
-			   this->optionsLabel->Text = L"Options";
+			   this->optionsLabel->Text = L"Effects";
 			   this->optionsLabel->TextAlign = System::Drawing::ContentAlignment::TopCenter;
 			   this->blurTrackbar->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Left));
 			   this->blurTrackbar->BackColor = System::Drawing::SystemColors::ControlDarkDark;
@@ -803,7 +803,7 @@ namespace CppCLRWinformsProjekt {
 			   this->rangeBigLabel->Name = L"rangeBigLabel";
 			   this->rangeBigLabel->Size = System::Drawing::Size(182, 18);
 			   this->rangeBigLabel->TabIndex = 31;
-			   this->rangeBigLabel->Text = L"Range";
+			   this->rangeBigLabel->Text = L"HSL Ranges";
 			   this->rangeBigLabel->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
 			   this->rangeMid->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Bottom | System::Windows::Forms::AnchorStyles::Right));
 			   this->rangeMid->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
