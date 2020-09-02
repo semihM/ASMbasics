@@ -1329,7 +1329,7 @@ namespace CppCLRWinformsProjekt {
 			if (ASMCheckBox->Checked)
 			{
 				startTime = clock();
-				//ASMNegativeIMG((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes, applyNeg);
+				ASMGreyscale((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, imgSizeInBytes);
 				finishTime = clock();
 				Greyscale_asmTotal += finishTime - startTime;
 				Greyscale_asmCount++;

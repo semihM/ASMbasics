@@ -19,6 +19,10 @@
 
 	OVERFLOW dword 00FFh
 	UNDERFLOW dword 0000h
+
+	pixel_4_size dword 12
+	pixel_size dword 3
+
 .code
 
 ASMAdjustBrightness proc
@@ -573,5 +577,210 @@ ASMBlurIMG proc
 
 	ret
 ASMBlurIMG endp
+
+INSERT_TO_XMM macro baseptr, offsetptr, byteoffset
+	pinsrb	xmm0, byte ptr[baseptr+offsetptr+byteoffset*3], byteoffset*4
+	pinsrb	xmm1, byte ptr[baseptr+offsetptr+byteoffset*3+1], byteoffset*4
+	pinsrb	xmm2, byte ptr[baseptr+offsetptr+byteoffset*3+2], byteoffset*4
+endm
+
+EXEC_INSERT proc 
+	pxor xmm0,xmm0
+	pxor xmm1,xmm1
+	pxor xmm2,xmm2
+	INSERT_TO_XMM rdx, r10, 0
+	INSERT_TO_XMM rdx, r10, 1
+	INSERT_TO_XMM rdx, r10, 2
+	INSERT_TO_XMM rdx, r10, 3
+	cvtdq2ps xmm0,xmm0	
+	cvtdq2ps xmm1,xmm1
+	cvtdq2ps xmm2,xmm2
+	ret
+EXEC_INSERT endp
+
+
+macro_muldiv macro operation, source, mem
+
+    pxor xmm4, xmm4
+	pxor xmm5, xmm5
+
+	pinsrd xmm4, source, 0
+	cvtdq2ps xmm4, xmm4
 	
+	pinsrd xmm5, [mem], 0
+	cvtdq2ps xmm5, xmm5 
+	operation xmm4, xmm5
+	roundps xmm4, xmm4, 1
+	
+	cvtps2dq xmm4, xmm4
+	pextrd source, xmm4, 0
+
+endm
+
+ASMGreyscale proc
+; extern "C" void ASMNegativeIMG(unsigned char* scan0,
+	;								 unsigned char* org,
+	;							     int size);
+	; 		scan0 : RCX , org : RDX , size : R8D
+	;
+	;		float total;
+	;		unsigned char greyed;
+	;		float org[3];
+	;		for (int i = 0; i < imgSize; i+=3)
+	;		{	
+	;			org[0] = (float)original[i];
+	;			org[1] = (float)original[i+1];
+	;			org[2] = (float)original[i+2];
+	;			total = org[0]+ org[1]+ org[2];
+
+	;			if (total == 0){continue;}
+	;			greyed = (unsigned char)( ((org[0] / total) * org[0]) + ((org[1] / total) * org[1]) + ((org[2] / total) * org[2]));
+	;			bmp[i] = greyed;
+	;			bmp[i+1] = greyed;
+	;			bmp[i+2] = greyed;
+		
+	xor r10,r10	
+	pxor xmm3,xmm3
+
+	mov r9, r8 ; copy of size
+
+	macro_muldiv divps, r9d, pixel_4_size
+	macro_muldiv mulps, r9d, pixel_4_size
+
+	cmp r9, r8
+	je XMMOnly   ;size divisible by 4
+	
+	sub r8, r9
+
+	macro_muldiv divps, r9d, pixel_4_size
+	macro_muldiv divps, r8d, pixel_size
+
+	MainLoop:
+		; rcx scan0
+		; r10 offset
+		; r9 counter
+		call EXEC_INSERT	; insert 4 pixels' rgb values to xmm0-1-2 regs as dwords
+
+		addps xmm3, xmm2	; rgb sums for each pixel in dwords
+		addps xmm3, xmm1
+		addps xmm3, xmm0
+
+		mulps xmm0, xmm0
+		mulps xmm1, xmm1
+		mulps xmm2, xmm2
+
+		rcpps xmm3, xmm3
+
+		addps xmm0, xmm1
+		addps xmm0, xmm2
+
+		mulps xmm0, xmm3	; grey scale values in xmm0
+
+		cvtps2dq xmm0, xmm0
+
+		pextrb byte ptr[rcx+r10], xmm0, 0
+		pextrb byte ptr[rcx+r10+3], xmm0, 4
+		pextrb byte ptr[rcx+r10+6], xmm0, 8
+		pextrb byte ptr[rcx+r10+9], xmm0, 12
+
+		
+		pextrb byte ptr[rcx+r10+1], xmm0, 0
+		pextrb byte ptr[rcx+r10+4], xmm0, 4
+		pextrb byte ptr[rcx+r10+7], xmm0, 8
+		pextrb byte ptr[rcx+r10+10], xmm0, 12
+		
+		pextrb byte ptr[rcx+r10+2], xmm0, 0
+		pextrb byte ptr[rcx+r10+5], xmm0, 4
+		pextrb byte ptr[rcx+r10+8], xmm0, 8
+		pextrb byte ptr[rcx+r10+11], xmm0, 12
+
+		add r10, 12
+		dec r9d
+		jnz MainLoop
+
+	ResidualLoop:
+		pxor xmm0,xmm0
+		pxor xmm1,xmm1
+		pxor xmm2,xmm2
+
+		INSERT_TO_XMM rdx, r10, 0
+
+		cvtdq2ps xmm0,xmm0	
+		cvtdq2ps xmm1,xmm1
+		cvtdq2ps xmm2,xmm2
+
+		addps xmm3, xmm2	; rgb sums for each pixel in dwords
+		addps xmm3, xmm1
+		addps xmm3, xmm0
+
+		mulps xmm0, xmm0
+		mulps xmm1, xmm1
+		mulps xmm2, xmm2
+
+		rcpps xmm3, xmm3
+
+		addps xmm0, xmm1
+		addps xmm0, xmm2
+
+		mulps xmm0, xmm3	; grey scale values in xmm0
+
+		cvtps2dq xmm0, xmm0
+
+		pextrb byte ptr[rcx+r10], xmm0, 0
+		pextrb byte ptr[rcx+r10+1], xmm0, 0
+		pextrb byte ptr[rcx+r10+2], xmm0, 0
+
+		add r10, 3
+		dec r8d
+		jnz ResidualLoop
+		ret
+
+	XMMOnly:
+		macro_muldiv divps, r9d, pixel_4_size
+	XMMOnlyLoop:
+		; rcx scan0
+		; r10 offset
+		; r9 counter
+		call EXEC_INSERT	; insert 4 pixels' rgb values to xmm0-1-2 regs as dwords
+
+		addps xmm3, xmm2	; rgb sums for each pixel in dwords
+		addps xmm3, xmm1
+		addps xmm3, xmm0
+
+		mulps xmm0, xmm0
+		mulps xmm1, xmm1
+		mulps xmm2, xmm2
+
+		rcpps xmm3, xmm3
+
+		addps xmm0, xmm1
+		addps xmm0, xmm2
+
+		mulps xmm0, xmm3	; grey scale values in xmm0
+
+		cvtps2dq xmm0, xmm0
+
+		pextrb byte ptr[rcx+r10], xmm0, 0
+		pextrb byte ptr[rcx+r10+3], xmm0, 4
+		pextrb byte ptr[rcx+r10+6], xmm0, 8
+		pextrb byte ptr[rcx+r10+9], xmm0, 12
+
+		
+		pextrb byte ptr[rcx+r10+1], xmm0, 0
+		pextrb byte ptr[rcx+r10+4], xmm0, 4
+		pextrb byte ptr[rcx+r10+7], xmm0, 8
+		pextrb byte ptr[rcx+r10+10], xmm0, 12
+		
+		pextrb byte ptr[rcx+r10+2], xmm0, 0
+		pextrb byte ptr[rcx+r10+5], xmm0, 4
+		pextrb byte ptr[rcx+r10+8], xmm0, 8
+		pextrb byte ptr[rcx+r10+11], xmm0, 12
+
+		add r10, 12
+		dec r9d
+		jnz XMMOnlyLoop
+		ret
+
+ASMGreyscale endp
+
 end
