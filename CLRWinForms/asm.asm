@@ -6,6 +6,8 @@
 	hsl_mul		real4  240.0, 240.0, 240.0, 0.0
 	temphalve   real4  0.5, 0.0, 0.0, 0.0
 
+	temp_hsl	byte  3 dup(0)
+
 	HBLUR	  qword	 ?
 	BLURWIDTH dword  ?
 
@@ -836,6 +838,8 @@ ASMrgb2hsl proc
 	; Clear old regs
 	pxor xmm1,xmm1
 	pxor xmm2,xmm2
+	pxor xmm3,xmm3
+	pxor xmm4,xmm4
 
 	; Normalise
 	divps xmm0, xmmword ptr [rgb_ceil]
@@ -850,17 +854,17 @@ ASMrgb2hsl proc
 	maxps xmm2, xmm4  ; max in xmm2 first dword
 	
 	xor r10,r10
-	pxor xmm5,xmm5
+	pxor xmm4,xmm4
 
 	pextrd r10d, xmm2, 0
-	pinsrd xmm5, r10d, 0	; max copy in xmm5 first dword
-	subps xmm5, xmm1	; delta in xmm5 first dword
+	pinsrd xmm4, r10d, 0	; max copy in xmm4 first dword
+	subps xmm4, xmm1	; delta in xmm4 first dword
 
-	pslldq xmm5, 8
+	pslldq xmm4, 8
 	pslldq xmm2, 12
 	psrldq xmm2, 8
 
-	por xmm2, xmm5
+	por xmm2, xmm4
 	por xmm1, xmm2		; delta, max, min in xmm1
 
 	; normalisez values in xmm0
@@ -1004,5 +1008,103 @@ ASMrgb2hsl proc
 		ret
 
 ASMrgb2hsl endp
+
+ASMColorChangeColorRange proc
+	; extern "C" void ASMColorChangeColorRange(unsigned char* bmp : rcx,
+	;										   unsigned char* newColorRGB : rdx,
+	;										   unsigned char* ranges : r8,
+	;										   int size : r9)
+	; Store pointers and size as dwords in xmm5
+	
+	; r11-r15 are used instead
+	
+	; rbx : offset 
+	; r11 : bmpptr
+	; r12 : rgbptr
+	; r13 : rangeptr
+	; r14 : size
+	; r15 : temp for h,s,l range comparisons
+	push rbx
+	push r12
+	push r13
+	push r14
+	push r15
+
+	xor rbx, rbx
+	xor r12, r12
+	xor r13, r13
+	xor r14, r14
+	xor r15, r15
+
+	; store parameters
+	mov r11, rcx
+	mov r12, rdx
+	mov r13, r8
+	mov r14, r9
+
+	macro_muldiv divps, r14d, pixel_size
+
+	pxor xmm5, xmm5
+
+	lea r9, [temp_hsl]
+
+	pinsrb xmm5, byte ptr [r12], 0		; r
+	pinsrb xmm5, byte ptr [r12+1], 1	; g
+	pinsrb xmm5, byte ptr [r12+2], 2	; b
+
+	XMM_ccLoop:
+		; rbx is offset
+		; r14 is counter
+		; xmm0 : r , xmm1 : g , xmm2 : b , r9 : hslptr
+		pxor xmm0, xmm0
+		pxor xmm1, xmm1
+		pxor xmm2, xmm2
+		pinsrb xmm0, byte ptr [r11+rbx], 0
+		pinsrb xmm1, byte ptr [r11+rbx+1], 0
+		pinsrb xmm2, byte ptr [r11+rbx+2], 0
+		cvtdq2ps xmm0, xmm0
+		cvtdq2ps xmm1, xmm1
+		cvtdq2ps xmm2, xmm2
+
+		call ASMrgb2hsl	
+
+		mov r15b, byte ptr [r9] ; r15b = h
+
+		cmp r15b, byte ptr [r13]	  ; r15b < lowerhue
+		jb NextIter
+		cmp r15b, byte ptr [r13+1]	  ; r15b > upperhue
+		ja NextIter
+
+		mov r15b, byte ptr [r9+1]	; r15b = s
+
+		cmp r15b, byte ptr [r13+2]
+		jb NextIter
+		cmp r15b, byte ptr [r13+3]
+		ja NextIter
+
+		mov r15b, byte ptr [r9+2] ; r15b = l
+
+		cmp r15b, byte ptr [r13+4]
+		jb NextIter
+		cmp r15b, byte ptr [r13+5]
+		ja NextIter
+
+		pextrb byte ptr [r11+rbx], xmm5, 2  
+		pextrb byte ptr [r11+rbx+1], xmm5, 1  
+		pextrb byte ptr [r11+rbx+2], xmm5, 0 
+
+		NextIter:
+			add rbx, 3
+			dec r14
+			jnz XMM_ccLoop
+
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop rbx
+	ret
+
+ASMColorChangeColorRange endp
 
 end

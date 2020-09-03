@@ -14,4 +14,6 @@ extern "C" void ASMBlurIMG(int height,
 extern "C" void ASMGreyscale(unsigned char* scan0, unsigned char* org, int size);
 
 extern "C" void ASMrgb2hsl(float r, float g, float b, unsigned char* hslptr);
+
+extern "C" void ASMColorChangeColorRange(unsigned char* bmp, unsigned char* newColorRGB, unsigned char* ranges, int size);
 #endif // !ASM_ASM

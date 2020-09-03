@@ -101,6 +101,7 @@ namespace CppCLRWinformsProjekt {
 		unsigned char* HSL_RANGES;
 		unsigned char* HSL_RANGES_temp;
 		unsigned char* HSL_COLORS;
+		unsigned char* temp_nrgb;
 
 		static int imgSizeInBytes = -1;
 		static Rectangle imgRect;
@@ -236,9 +237,9 @@ namespace CppCLRWinformsProjekt {
 		}
 
 		void CPPColorChangeColorRange(unsigned char* bmp,
-									  unsigned char* org,
 									  Color newColor, 
-									  unsigned char* ranges)
+									  unsigned char* ranges,
+									  int imgsize)
 		{	
 
 			// Destination color
@@ -257,7 +258,7 @@ namespace CppCLRWinformsProjekt {
 			lumL = ranges[4];
 			lumH = ranges[5];
 
-			for (int p = 0; p < imgSizeInBytes; p += 3)
+			for (int p = 0; p < imgsize; p += 3)
 			{
 				convert2HSL((float)bmp[p+2], (float)bmp[p + 1], (float)bmp[p], temphsl);
 				temphue = temphsl[0];
@@ -1444,9 +1445,22 @@ namespace CppCLRWinformsProjekt {
 			}
 
 			if (ASMCheckBox->Checked)
-			{
+			{	
+				HSL_RANGES_temp = new unsigned char[6];
+				HSL_RANGES_temp[0] = HSL[0] - HSL_RANGES[0];
+				HSL_RANGES_temp[1] = HSL[0] + HSL_RANGES[1];
+				HSL_RANGES_temp[2] = HSL[1] - HSL_RANGES[2];
+				HSL_RANGES_temp[3] = HSL[1] + HSL_RANGES[3];
+				HSL_RANGES_temp[4] = HSL[2] - HSL_RANGES[4];
+				HSL_RANGES_temp[5] = HSL[2] + HSL_RANGES[5];
+
+				temp_nrgb = new unsigned char[3];
+				temp_nrgb[0] = (unsigned char)nColor.R;
+				temp_nrgb[1] = (unsigned char)nColor.G;
+				temp_nrgb[2] = (unsigned char)nColor.B;
+
 				startTime = clock();
-				//ASMBlurIMG(bmpFront->Height, bmpFront->Width, bmpOriginal, (unsigned char*)bmpData->Scan0.ToPointer(), hBlur, blurWidth);
+				ASMColorChangeColorRange((unsigned char*)bmpData->Scan0.ToPointer(),temp_nrgb,HSL_RANGES_temp,imgSizeInBytes);
 				finishTime = clock();
 				ColorChange_asmTotal += finishTime - startTime;
 				ColorChange_asmCount++;
@@ -1463,7 +1477,7 @@ namespace CppCLRWinformsProjekt {
 				HSL_RANGES_temp[5] = HSL[2] + HSL_RANGES[5];
 
 				startTime = clock();
-				CPPColorChangeColorRange((unsigned char*)bmpData->Scan0.ToPointer(), keptIMG, nColor, HSL_RANGES_temp);
+				CPPColorChangeColorRange((unsigned char*)bmpData->Scan0.ToPointer(), nColor, HSL_RANGES_temp, imgSizeInBytes);
 				finishTime = clock();
 				ColorChange_cppTotal += finishTime - startTime;
 				ColorChange_cppCount++;
