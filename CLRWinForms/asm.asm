@@ -1,8 +1,11 @@
 .data
     align 16
-	RCPBOXWIDTH real4 0.0, 0.0, 0.0, 0.0
-	ONES	    real4 1.0, 1.0, 1.0, 1.0
-	
+	RCPBOXWIDTH real4  0.0, 0.0, 0.0, 0.0
+	ONES	    real4  1.0, 1.0, 1.0, 1.0
+	rgb_ceil    real4  255.0, 255.0, 255.0, 255.0
+	hsl_mul		real4  240.0, 240.0, 240.0, 0.0
+	temphalve   real4  0.5, 0.0, 0.0, 0.0
+
 	HBLUR	  qword	 ?
 	BLURWIDTH dword  ?
 
@@ -22,6 +25,7 @@
 
 	pixel_4_size dword 12
 	pixel_size dword 3
+
 
 .code
 
@@ -126,14 +130,14 @@ AddOrgToXMM0 proc
 	mul [COUNT]
 	
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	pinsrb xmm5, byte ptr [r8+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r8+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r8+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r8+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r8+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 
 	addps xmm0, xmm5
 
@@ -160,14 +164,14 @@ AddOrgToXMM1 proc
 	mul [COUNT] 	
 
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	pinsrb xmm5, byte ptr [r8+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r8+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r8+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r8+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r8+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 	
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
@@ -200,14 +204,14 @@ SubOrgFromXMM1 proc
 	mul [COUNT]
 
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	pinsrb xmm5, byte ptr [r8+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r8+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r8+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r8+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r8+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 	
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
@@ -283,18 +287,18 @@ AddHBlurToXMM0 proc
 	mul [COUNT]
 	
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	mov r11, HBLUR
 	
 	;comp[n] = HBlur[eax+n] , n = 0,1,2
 
 	pinsrb xmm5, byte ptr [r11+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r11+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r11+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r11+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 	
 	addps xmm0, xmm5
 
@@ -323,16 +327,16 @@ AddHBlurToXMM1 proc
 	mul [COUNT] 	
 
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	mov r11, HBLUR
 	;comp[n] = HBlur[eax+n] , n = 0,1,2
 	pinsrb xmm5, byte ptr [r11+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r11+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r11+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r11+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 	
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
@@ -367,17 +371,17 @@ SubHBlurFromXMM1 proc
 	mul [COUNT]
 
 	pxor xmm5, xmm5
-	pxor xmm6, xmm6
-	pxor xmm7, xmm7
+	pxor xmm2, xmm2
+	pxor xmm3, xmm3
 
 	mov r11, HBLUR
 	
 	;comp[n] = HBlur[eax+n] , n = 0,1,2
 	pinsrb xmm5, byte ptr [r11+rax], 0		; R in xmm5's 1st byte
-	pinsrb xmm6, byte ptr [r11+rax+1], 4	    ; G in xmm6's 1st byte
-	pinsrb xmm7, byte ptr [r11+rax+2], 8		; B in xmm7's 1st byte
-	por xmm5, xmm6			; R G as xmm5's low words
-    por xmm5, xmm7			; R G B xmm5's first 3 words
+	pinsrb xmm2, byte ptr [r11+rax+1], 4	    ; G in xmm2's 1st byte
+	pinsrb xmm3, byte ptr [r11+rax+2], 8		; B in xmm3's 1st byte
+	por xmm5, xmm2			; R G as xmm5's low words
+    por xmm5, xmm3			; R G B xmm5's first 3 words
 	
 	cvtdq2ps xmm5, xmm5		; dword ints to sp floats
 
@@ -598,7 +602,6 @@ EXEC_INSERT proc
 	ret
 EXEC_INSERT endp
 
-
 macro_muldiv macro operation, source, mem
 
     pxor xmm4, xmm4
@@ -782,5 +785,224 @@ ASMGreyscale proc
 		ret
 
 ASMGreyscale endp
+
+ASMrgb2hsl proc
+	; extern "C" void ASMrgb2hsl(float r:xmm0,
+	;						  float g:xmm1,
+	;						  float b:xmm2,
+	;						  unsigned char* hsl:r9);
+
+	;	double rN, gN, bN, max, min, delta, h, s ,l;
+	;	rN = r / 255; gN = g / 255; bN = b / 255;
+			
+	;	max = rN + (gN - rN) * (gN > rN);
+	;	max = max + (bN - max) * (bN > max);
+	;	min = rN + (gN - rN) * (gN < rN); 
+	;	min = min + (bN - min) * (bN < min);
+
+	;	l = (max + min) * 0.5;
+
+	;	if(max == min)
+	;	{
+	;		hsl[0] = 0;
+	;		hsl[1] = 0;
+	;		hsl[2] = (unsigned char)(l * 240.0);
+	;	}
+	;	else 
+	;	{
+	;		delta = max - min;
+	;		s = l > 0.5 ? delta / (2.0 - max - min) : delta / (max + min);
+				
+	;		if (max == rN)
+	;			h = (gN - bN) / delta + (gN < bN ? 6.0 : 0);
+	;		else if (max == gN)
+	;			h = (bN - rN) / delta + 2.0;
+	;		else if (max == bN)
+	;			h = (rN - gN) / delta + 4.0;
+	;		else
+	;			h = 0;
+			
+	;		h /= 6.0;
+	;		hsl[0] = (unsigned char)(h*240.0);
+	;		hsl[1] = (unsigned char)(s*240.0);
+	;		hsl[2] = (unsigned char)(l*240.0);
+	
+	; Store RGB in xmm0
+	pslldq xmm1, 4
+	pslldq xmm2, 8
+	por xmm1, xmm2
+	por xmm0, xmm1
+
+	; Clear old regs
+	pxor xmm1,xmm1
+	pxor xmm2,xmm2
+
+	; Normalise
+	divps xmm0, xmmword ptr [rgb_ceil]
+	
+	pshufd xmm1, xmm0 , 11111101b ; xmm0 : _-b-g-r , xmm1: _-_-_-g
+	pshufd xmm2, xmm0 , 11111101b ; xmm0 : _-b-g-r , xmm2: _-_-_-g
+	minps xmm1, xmm0			  
+	maxps xmm2, xmm0
+	pshufd xmm3, xmm0 , 11111110b ; xmm0 : _-b-g-r , xmm3: _-_-_-b
+	pshufd xmm4, xmm0 , 11111110b ; xmm0 : _-b-g-r , xmm4: _-_-_-b
+	minps xmm1, xmm3  ; min in xmm1 first dword
+	maxps xmm2, xmm4  ; max in xmm2 first dword
+	
+	xor r10,r10
+	pxor xmm5,xmm5
+
+	pextrd r10d, xmm2, 0
+	pinsrd xmm5, r10d, 0	; max copy in xmm5 first dword
+	subps xmm5, xmm1	; delta in xmm5 first dword
+
+	pslldq xmm5, 8
+	pslldq xmm2, 12
+	psrldq xmm2, 8
+
+	por xmm2, xmm5
+	por xmm1, xmm2		; delta, max, min in xmm1
+
+	; normalisez values in xmm0
+	; max+min, delta, max, min  as xmm1 dwords
+
+	pxor xmm2, xmm2  ; use xmm2 for hsl calculations
+
+	pshufd xmm2, xmm1, 11111101b ; max as lowest dword of xmm2
+	addps xmm2, xmm1			; max + min in xmm2's lowest dword
+
+	pextrd r10d, xmm2, 0		
+	pinsrd xmm1, r10d, 3		; store copy of max+min for future
+
+	mulps xmm2, xmmword ptr [temphalve] 
+	
+	pslldq xmm2, 8  ; l value in 3rd dword of xmm2
+
+	; check delta
+	pextrd r10d, xmm1, 2
+	cmp r10d, 0
+	je DeltaZero
+
+	pshufd xmm2, xmm2, 11000110b ; l as lowest dword 
+	mov r8d, 3f000000h ; 0.5 as ieee754 sp fp
+	pinsrd xmm3, r8d, 0
+	
+	comiss xmm2, xmm3  ; compare l with 0.5
+	jc LessThanHalf	   ; jump if l<0.5
+	; set s
+
+	pshufd xmm2, xmm2, 11000110b ; put l back to 3rd dword
+	mov r8d, 40000000h  ;2.0 as sp fp
+	pinsrd xmm3, r8d, 3 ;2.0 in xmm3's highest dword
+
+	subps xmm3, xmm1	; 2 - max - min in xmm3's highest dword
+	rcpps xmm3, xmm3    ; get reciprocal
+	psrldq xmm3, 4		; shift right a dword to align with delta
+	mulps xmm3, xmm1	; delta*(1/(2-min-max)) in as 3rd dword in xmm3
+	pextrd r8d, xmm3, 2
+	pinsrd xmm2, r8d, 1 ; xmm2 with 0-l-s-0 dwords
+	jmp H_set ; last one is h
+
+	LessThanHalf:
+		;set s
+		pshufd xmm2, xmm2, 11000110b ; put l back to 3rd dword
+		rcpps xmm3, xmm1 ; reciprocals of max+min and the unused rest in xmm3
+		psrldq xmm3, 4	; shift right a dword to align with delta
+		mulps xmm3, xmm1	; delta*(1/(min+max)) in as 3rd dword in xmm3
+		pextrd r8d, xmm3, 2
+		pinsrd xmm2, r8d, 1 ; xmm2 with 0-l-s-0 dwords
+
+	H_set:
+		; xmm3 ' s lowest dword whill be h
+	    pxor xmm3, xmm3
+		pxor xmm4, xmm4
+
+		pextrd r8d, xmm1, 1 ; max in r8d
+		pextrd eax, xmm0, 0 ; rN in eax
+		pextrd ecx, xmm0, 1 ; gN in ecx
+		pextrd edx, xmm0, 2 ; bN in edx
+		
+		cmp r8d, eax
+		je max_rN
+		cmp r8d, ecx
+		je max_gN
+		cmp r8d, edx
+		je max_bN
+
+		jmp end_hsl
+		
+		max_rN:
+			rcpps xmm1, xmm1  ; delta's reciprocal is needed
+			psrldq xmm1, 8	  ; 1/delta as first dword
+			pinsrd xmm3, ecx, 0
+			pinsrd xmm4, edx, 0
+			comiss xmm3, xmm4
+			jc add6				; jump to add 6 if ecx<edx
+			subps xmm3, xmm4
+			mulps xmm3, xmm1
+			jmp end_hsl
+			
+			add6:
+				subps xmm3, xmm4
+				mulps xmm3, xmm1
+
+				mov r8d, 40C00000h ; 6.0 as sp fp
+				pinsrd xmm3, r8d , 1
+				haddps xmm3, xmm3  ; add 6.0 to h
+				jmp end_hsl
+				
+		max_gN:
+			rcpps xmm1, xmm1  ; delta's reciprocal is needed
+			psrldq xmm1, 8	  ; 1/delta as first dword
+			pinsrd xmm3, edx, 0
+			pinsrd xmm4, eax, 0
+			subps xmm3, xmm4
+			mulps xmm3, xmm1
+
+			mov r8d, 40000000h ; 2.0 as sp fp
+			pinsrd xmm3, r8d , 1
+			haddps xmm3, xmm3
+			jmp end_hsl
+		
+		max_bN:
+			rcpps xmm1, xmm1  ; delta's reciprocal is needed
+			psrldq xmm1, 8	  ; 1/delta as first dword
+			pinsrd xmm3, eax, 0
+			pinsrd xmm4, ecx, 0
+			subps xmm3, xmm4
+			mulps xmm3, xmm1
+
+			mov r8d, 40800000h ; 4.0 as sp fp
+			pinsrd xmm3, r8d , 1
+			haddps xmm3, xmm3
+			jmp end_hsl
+		
+		end_hsl:
+			mov r8d, 3E2AAAABh ; 1/6 as sp fp
+			pinsrd xmm4, r8d, 0
+			mulps xmm3, xmm4
+			addps xmm2, xmm3
+			mulps xmm2, xmmword ptr [hsl_mul]
+
+			roundps xmm2, xmm2, 0
+			cvtps2dq xmm2, xmm2
+
+			pextrb byte ptr[r9], xmm2, 0
+			pextrb byte ptr[r9+1], xmm2, 4
+			pextrb byte ptr[r9+2], xmm2, 8
+		
+			ret
+
+	DeltaZero:
+		; h=0, s=0, l= (unsigned char)(l*240.0)
+		mulps xmm2, xmmword ptr [hsl_mul]
+		roundps	xmm2, xmm2, 0
+		cvtps2dq xmm2, xmm2
+		pextrb byte ptr[r9], xmm2, 0
+		pextrb byte ptr[r9+1], xmm2, 4
+		pextrb byte ptr[r9+2], xmm2, 8
+		ret
+
+ASMrgb2hsl endp
 
 end
