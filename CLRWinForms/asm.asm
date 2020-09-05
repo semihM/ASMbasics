@@ -1107,4 +1107,96 @@ ASMColorChangeColorRange proc
 
 ASMColorChangeColorRange endp
 
+ASMCoordinates proc
+	; extern "C" void (unsigned int* x_y_o, int ratioIndex,
+	;				   int whiteW, int whiteH,
+	;				   int dispW, int dispH,
+	;				   int boxW, int boxH)
+	; x_y_o: rcx , ratioIndex: rdx , whiteW: r8, whiteH: r9
+	; dispW: rsp+40, dispH: rsp+48, boxW: rsp+56, boxH:rsp+64
+	;
+	;			if (wRatio > hRatio)
+	;			{
+	;				X -= whiteSpaceW;
+	;				if (X > dispW || X <= 0 || Y <= 0 || Y > boxH)
+	;				{
+	;					X = 0;
+	;					Y = 0;
+	;					onImage = 0;
+	;				}
+	;				else
+	;				{
+	;					onImage = 1;
+	;				}
+	;			}
+	;
+	;			else if (hRatio > wRatio)
+	;			{
+	;				Y -= whiteSpaceH;
+	;				if (Y > dispH || Y <= 0 || X <= 0 || X > boxW)
+	;				{	
+	;					X = 0;
+	;					Y = 0;
+	;					onImage = 0;
+	;				}
+	;				else
+	;				{
+	;					onImage = 1;
+	;				}
+	;			}
+	mov eax, dword ptr [rcx] ; X in eax
+	mov r11d, dword ptr [rcx+4] ; Y in r11d
+
+	cmp rdx, 1
+	je hRatio_greater
+
+	cmp	eax, r8d
+	jbe all_zero				   ; X <= whiteW
+	
+	mov r10d, dword ptr[rsp+40]
+	add r10d, r8d
+	cmp	eax, r10d	   
+	ja all_zero			       ; X > dispW + whiteW
+	
+	cmp	r11d, 0
+	jbe all_zero				; Y <= 0
+	
+	mov r10d, dword ptr[rsp+64]
+	cmp	r11d, r10d
+	ja all_zero				   ; Y > boxH
+	
+	sub eax, r8d
+	mov dword ptr [rcx], eax
+	mov dword ptr [rcx+8], 1	; onImage = 1
+	ret
+
+	all_zero:
+		mov dword ptr [rcx], 0
+		mov dword ptr [rcx+4], 0
+		mov dword ptr [rcx+8], 0
+		ret
+	
+	hRatio_greater:
+		
+		cmp	r11d, r9d
+		jbe all_zero				   ; Y <= whiteH
+	
+		mov r10d, dword ptr[rsp+48]
+		add r10d, r9d
+		cmp	r11d, r10d	   
+		ja all_zero			       ; Y > dispH + whiteH
+	
+		cmp	eax, 0
+		jbe all_zero				; X <= 0
+	
+		mov r10d, dword ptr[rsp+56]
+		cmp	eax, r10d
+		ja all_zero				   ; X > boxW
+		
+		sub r11d, r9d
+		mov dword ptr[rcx+4], r11d
+		mov dword ptr [rcx+8], 1	; onImage = 1
+		ret
+ASMCoordinates endp
+
 end

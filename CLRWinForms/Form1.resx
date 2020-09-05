@@ -123,11 +123,11 @@
   <metadata name="dlgOpen.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>115, 17</value>
   </metadata>
-  <metadata name="colorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <metadata name="searchColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>214, 17</value>
   </metadata>
   <metadata name="saveFileDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>370, 17</value>
+    <value>397, 18</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="colorPickToolCheckbox.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
@@ -784,8 +784,42 @@
         /////////////////wA=
 </value>
   </data>
+  <data name="drawPenCheckbox.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        /9j/4AAQSkZJRgABAQEAYABgAAD/4QC+RXhpZgAATU0AKgAAAAgACAESAAMAAAABAAEAAAE+AAUAAAAC
+        AAAAbgE/AAUAAAAGAAAAfgMBAAUAAAABAAAArgMDAAEAAAABAAAAAFEQAAEAAAABAQAAAFERAAQAAAAB
+        AADqYFESAAQAAAABAADqYAAAAAAAAHomAAGGoAAAgIQAAYagAAD6AAABhqAAAIDoAAGGoAAAdTAAAYag
+        AADqYAABhqAAADqYAAGGoAAAF3AAAYagAAGGoAAAsY//2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYE
+        BAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcI
+        DAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAfAB4D
+        ASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQA
+        AAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6
+        Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKz
+        tLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEB
+        AQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEI
+        FEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hp
+        anN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX
+        2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKK+S/23P25r7TfF+ufCX4V69oui+MN
+        C0xdX+IHjzU1jm0P4N6M6FxeXW/93Nqc0YZrSxc4IH2icC3VVnALf7aH7Ytymt+IPhr4A8SWPhjUPDdi
+        uofETx9cKklh8MNNkQOvDApNq9xGQba1IYRqy3EylDDFc/mj4M/Ys+P/AIC/b98da9+xr461zwHq3izR
+        o7/xl4R8b3dxrUehxsLT7Ddavc3RlC63qKie8FpIslzbQPI0ksYuUhr3nwf4Z134g/EjRPgr8GdLvtF1
+        bw/IniaSbxNC2oS/D/7Wxm/4TPxUJub7xVfMXm07SrjJt8i8u1RlSGH9Hv2Zv2Z/Cv7JnwmtPB/hK3vP
+        ssc0t9f6hqFy13qeu38zb7nUL25f57i7nkJeSV+WY8YUBQAeI/t0/tq61o3iHVvhL8I9Y0HR/HtjpP8A
+        bXjTxxrSpJ4f+DWhsrs2q6hvKxy3jxpIbSyZh5pjaaUpbRSMfk7wV8NNa1XxHonwV+CelahputWdyni9
+        rrxjbvqF14ZmuZPMPj/xksoVr3xDdyI0ul6NNtaJkW5uUhMCQ6b8ifsTfslftqftU/8ABTH4iftAeBbP
+        w/o3we+KnjO61mK/8Y6rFqGkrDbzSjSbx9Jt7gSXV5p0bQzWqXEaos8MTbo2USJ+637MH7Mfhr9k/wCG
+        I8N+Hft99NeXcuq63repzC41bxNqc237RqN9PgebcSlVBICoiJHHGscUccaAEH7J37J/hH9jP4QQ+D/C
+        MeoTpLdTaprGsarcm81jxPqc5DXWp6hckBri7ncbncgAAKiKkaIi+l0UUAf/2Q==
+</value>
+  </data>
+  <metadata name="newColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>215, 36</value>
+  </metadata>
+  <metadata name="toolColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>216, 56</value>
+  </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>53</value>
+    <value>79</value>
   </metadata>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
