@@ -117,19 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="mainBox.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
-  <metadata name="dlgOpen.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>115, 17</value>
-  </metadata>
-  <metadata name="searchColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>214, 17</value>
-  </metadata>
-  <metadata name="saveFileDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>397, 18</value>
-  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="mainBox.TrayLocation" type="System.Drawing.Point, System.Drawing">
+    <value>17, 17</value>
+  </data>
+  <data name="dlgOpen.TrayLocation" type="System.Drawing.Point, System.Drawing">
+    <value>115, 17</value>
+  </data>
+  <data name="searchColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing">
+    <value>214, 17</value>
+  </data>
+  <data name="saveFileDialog.TrayLocation" type="System.Drawing.Point, System.Drawing">
+    <value>397, 18</value>
+  </data>
   <data name="colorPickToolCheckbox.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         Qk36MQAAAAAAADYAAAAoAAAAQQAAAEEAAAABABgAAAAAAAAAAADEDgAAxA4AAAAAAAAAAAAA////////
@@ -812,12 +812,12 @@
         MeoTpLdTaprGsarcm81jxPqc5DXWp6hckBri7ncbncgAAKiKkaIi+l0UUAf/2Q==
 </value>
   </data>
-  <metadata name="newColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <data name="newColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing">
     <value>215, 36</value>
-  </metadata>
-  <metadata name="toolColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  </data>
+  <data name="toolColorChangeDialog.TrayLocation" type="System.Drawing.Point, System.Drawing">
     <value>216, 56</value>
-  </metadata>
+  </data>
   <data name="selectToolCheckbox.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         /9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcI
@@ -897,9 +897,10 @@
         0AFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAH/9k=
 </value>
   </data>
-  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="$this.TrayHeight" type="System.Int32, mscorlib">
     <value>79</value>
-  </metadata>
+  </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAAYAAAAAAAEAIABWHwAAZgAAAICAAAABACAAKAgBALwfAABAQAAAAQAgAChCAADkJwEAMDAAAAEA
@@ -2699,5 +2700,15 @@
         AAAAAAAAAAAAAAAA//8AAOH/AACAPwAAgB8AAAAPAAAABwAAAAMAAAADAAAAAwAAAAEAAAAAAAAAAAAA
         gAAAAMAIAADwPgAA//8AAA==
 </value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="imgProc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>imgProc.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="pen" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>pen.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="picker" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>picker.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

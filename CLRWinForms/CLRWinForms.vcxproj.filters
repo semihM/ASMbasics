@@ -54,6 +54,15 @@
     <Image Include="color_picker_tool.jpg">
       <Filter>Resources</Filter>
     </Image>
+    <Image Include="imgProc.ico">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="pen.ico">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="picker.ico">
+      <Filter>Resources</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="asm.asm">

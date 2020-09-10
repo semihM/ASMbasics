@@ -76,12 +76,9 @@ ASMNegativeIMG proc
 	; extern "C" void ASMNegativeIMG(unsigned char* bmpDataScan0,
 	;								 unsigned char* bmpOrg,
 	;							     int imgsizeinbytes);
-	; bmpDataScan0 : RCX , bmpOrg : RDX , imgsizeinbytes : R8D, checked : r9
+	; bmpDataScan0 : RCX , bmpOrg : RDX , imgsizeinbytes : R8D
 	
 	mov r10, 0 ; offset pointer to 0
-	cmp r9b, 0 ; check if negative is not checked
-
-	je Unchecked
 
 	Checked:
 		mov r11b, 0ffh;
@@ -92,15 +89,6 @@ ASMNegativeIMG proc
 		inc r10 ; move to next byte
 		dec R8d ; decrement the counter
 		jnz Checked ; jump if there's more
-		ret
-
-	Unchecked:
-		mov al, byte ptr [rdx + r10]
-		mov byte ptr [rcx + r10] , al ; restore from original
-
-		inc r10 ; move to next byte
-		dec R8d ; decrement the counter
-		jnz Unchecked ; jump if there's more
 		ret
 
 ASMNegativeIMG endp

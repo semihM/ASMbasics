@@ -3,7 +3,7 @@
 
 extern "C" void ASMAdjustBrightness(unsigned char* bmpDataScan0,unsigned char* bmpOrg,short val,int imgsizeinbytes);
 
-extern "C" void ASMNegativeIMG(unsigned char* bmpDataScan0, unsigned char* bmpOrg, int imgsizeinbytes,bool checked);
+extern "C" void ASMNegativeIMG(unsigned char* bmpDataScan0, unsigned char* bmpOrg, int imgsizeinbytes);
 
 extern "C" void ASMBlurIMG(int height,
 						   int width,

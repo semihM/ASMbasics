@@ -142,7 +142,6 @@ namespace CLRWinForms {
 		static int front_index;
 
 		static bool keepLast = false;
-		static bool applyNeg = false;
 		static bool mouseDownselectTool = false;
 
 		static double Brightness_cppCount = 0.0;
@@ -183,6 +182,7 @@ namespace CLRWinForms {
 		static long startMove, finishMove;
 
 		static System::Windows::Forms::MouseButtons leftbutton = System::Windows::Forms::MouseButtons::Left;
+		static System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
 
 		void ResetIMG(unsigned char* bmp, unsigned char* original, long imgSize)
 		{
@@ -225,7 +225,6 @@ namespace CLRWinForms {
 
 			ASMCheckBox->Checked = false;
 			keepIMGCheckBox->Checked = false;
-			applyNeg = false;
 
 			Brightness_cppTotal = 0.0;
 			Brightness_cppCount = 0.0;
@@ -282,6 +281,7 @@ namespace CLRWinForms {
 			onImage = 1;
 			saveCounter = 0;
 
+			validSelection = false;
 		}
 
 		void swap(int* arr)
@@ -302,22 +302,13 @@ namespace CLRWinForms {
 		}
 
 
-		void CPPNegativeIMG(unsigned char* bmp, unsigned char* original,long imgSize,bool isChecked)
+		void CPPNegativeIMG(unsigned char* bmp, unsigned char* original,long imgSize)
 		{	
-			if(isChecked)
+			for (int i = 0; i < imgSize; i++)
 			{
-				for (int i = 0; i < imgSize; i++)
-				{
-					bmp[i] = 255 - original[i];
-				}
+				bmp[i] = 255 - original[i];
 			}
-			else
-			{
-				for (int i = 0; i < imgSize; i++)
-				{
-					bmp[i] = original[i];
-				}
-			}
+			
 		}
 
 		void CPPBlurIMG(unsigned char* bmp,unsigned char* org, short blurWidth)
@@ -793,14 +784,14 @@ namespace CLRWinForms {
 
 			keptIMG = new unsigned char[imgSize2Use];
 
-			if (keepLast) { Copy((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use); applyNeg = true; }
+			if (keepLast) { Copy((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use); }
 
 			else { Copy(org2Use, keptIMG, imgSize2Use); }
 		}
 
 		void ClearOriginalImage()
 		{
-			if (bmpOriginal != nullptr) { delete[] bmpOriginal; delete[] temp; delete[] cropped; }
+			if (bmpOriginal != nullptr) { delete[] bmpOriginal; delete[] cropOriginal; }
 		}
 
 		//Make a copy of the original image
@@ -962,7 +953,6 @@ namespace CLRWinForms {
 		   /// </summary>
 		   void InitializeComponent(void)
 		   {
-			   System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
 			   this->mainBox = (gcnew System::Windows::Forms::MenuStrip());
 			   this->fileToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			   this->newToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -1056,15 +1046,16 @@ namespace CLRWinForms {
 					   this->toolStripSeparator2
 			   });
 			   this->newToolStripMenuItem->Name = L"newToolStripMenuItem";
-			   this->newToolStripMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->newToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->newToolStripMenuItem->Text = L"New";
 			   this->toolStripEmptyLabel->Name = L"toolStripEmptyLabel";
+			   this->toolStripEmptyLabel->ReadOnly = true;
 			   this->toolStripEmptyLabel->Size = System::Drawing::Size(100, 23);
 			   this->toolStripEmptyLabel->Text = L"Ratios";
 			   this->toolStripSeparator1->Name = L"toolStripSeparator1";
-			   this->toolStripSeparator1->Size = System::Drawing::Size(157, 6);
+			   this->toolStripSeparator1->Size = System::Drawing::Size(177, 6);
 			   this->toolStripNewCustom->Name = L"toolStripNewCustom";
-			   this->toolStripNewCustom->Size = System::Drawing::Size(160, 22);
+			   this->toolStripNewCustom->Size = System::Drawing::Size(180, 22);
 			   this->toolStripNewCustom->Text = L"Custom";
 			   this->toolStripNewSquare->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(9) {
 				   this->toolStripTextBox2,
@@ -1072,63 +1063,64 @@ namespace CLRWinForms {
 					   this->x128BMPToolStripMenuItem, this->x256BMPToolStripMenuItem, this->x512BMPToolStripMenuItem, this->x1024BMPToolStripMenuItem
 			   });
 			   this->toolStripNewSquare->Name = L"toolStripNewSquare";
-			   this->toolStripNewSquare->Size = System::Drawing::Size(160, 22);
+			   this->toolStripNewSquare->Size = System::Drawing::Size(180, 22);
 			   this->toolStripNewSquare->Text = L"Square";
 			   this->toolStripTextBox2->Name = L"toolStripTextBox2";
+			   this->toolStripTextBox2->ReadOnly = true;
 			   this->toolStripTextBox2->Size = System::Drawing::Size(100, 23);
 			   this->toolStripTextBox2->Text = L"Sizes";
 			   this->toolStripSeparator3->Name = L"toolStripSeparator3";
-			   this->toolStripSeparator3->Size = System::Drawing::Size(159, 6);
+			   this->toolStripSeparator3->Size = System::Drawing::Size(177, 6);
 			   this->x16BitmapToolStripMenuItem->Name = L"x16BitmapToolStripMenuItem";
-			   this->x16BitmapToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x16BitmapToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x16BitmapToolStripMenuItem->Text = L"16 x 16 BMP";
 			   this->x16BitmapToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x16BitmapToolStripMenuItem_Click);
 			   this->x32BitmapToolStripMenuItem->Name = L"x32BitmapToolStripMenuItem";
-			   this->x32BitmapToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x32BitmapToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x32BitmapToolStripMenuItem->Text = L"32 x 32 BMP";
 			   this->x32BitmapToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x32BitmapToolStripMenuItem_Click);
 			   this->x64BMPToolStripMenuItem->Name = L"x64BMPToolStripMenuItem";
-			   this->x64BMPToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x64BMPToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x64BMPToolStripMenuItem->Text = L"64 x 64 BMP";
 			   this->x64BMPToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x64BMPToolStripMenuItem_Click);
 			   this->x128BMPToolStripMenuItem->Name = L"x128BMPToolStripMenuItem";
-			   this->x128BMPToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x128BMPToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x128BMPToolStripMenuItem->Text = L"128 x 128 BMP";
 			   this->x128BMPToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x128BMPToolStripMenuItem_Click);
 			   this->x256BMPToolStripMenuItem->Name = L"x256BMPToolStripMenuItem";
-			   this->x256BMPToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x256BMPToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x256BMPToolStripMenuItem->Text = L"256 x256 BMP";
 			   this->x256BMPToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x256BMPToolStripMenuItem_Click);
 			   this->x512BMPToolStripMenuItem->Name = L"x512BMPToolStripMenuItem";
-			   this->x512BMPToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x512BMPToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x512BMPToolStripMenuItem->Text = L"512 x 512 BMP";
 			   this->x512BMPToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x512BMPToolStripMenuItem_Click);
 			   this->x1024BMPToolStripMenuItem->Name = L"x1024BMPToolStripMenuItem";
-			   this->x1024BMPToolStripMenuItem->Size = System::Drawing::Size(162, 22);
+			   this->x1024BMPToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->x1024BMPToolStripMenuItem->Text = L"1024 x 1024 BMP";
 			   this->x1024BMPToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::x1024BMPToolStripMenuItem_Click);
 			   this->toolStripNew43->Name = L"toolStripNew43";
-			   this->toolStripNew43->Size = System::Drawing::Size(160, 22);
+			   this->toolStripNew43->Size = System::Drawing::Size(180, 22);
 			   this->toolStripNew43->Text = L"4 : 3";
 			   this->toolStripNew169->Name = L"toolStripNew169";
-			   this->toolStripNew169->Size = System::Drawing::Size(160, 22);
+			   this->toolStripNew169->Size = System::Drawing::Size(180, 22);
 			   this->toolStripNew169->Text = L"16 : 9";
 			   this->toolStripNew1610->Name = L"toolStripNew1610";
-			   this->toolStripNew1610->Size = System::Drawing::Size(160, 22);
+			   this->toolStripNew1610->Size = System::Drawing::Size(180, 22);
 			   this->toolStripNew1610->Text = L"16 : 10";
 			   this->toolStripSeparator2->Name = L"toolStripSeparator2";
-			   this->toolStripSeparator2->Size = System::Drawing::Size(157, 6);
+			   this->toolStripSeparator2->Size = System::Drawing::Size(177, 6);
 			   this->openToolStripMenuItem->Name = L"openToolStripMenuItem";
-			   this->openToolStripMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->openToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->openToolStripMenuItem->Text = L"&Open";
 			   this->openToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::openToolStripMenuItem_Click);
 			   this->saveMenuItem->Enabled = false;
 			   this->saveMenuItem->Name = L"saveMenuItem";
-			   this->saveMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->saveMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->saveMenuItem->Text = L"&Save";
 			   this->saveMenuItem->Click += gcnew System::EventHandler(this, &Form1::saveMenuItem_Click);
 			   this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			   this->exitToolStripMenuItem->Size = System::Drawing::Size(103, 22);
+			   this->exitToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			   this->exitToolStripMenuItem->Text = L"&Exit";
 			   this->exitToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::exitToolStripMenuItem_Click);
 			   this->pictureBoxImg->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
@@ -1768,7 +1760,7 @@ namespace CLRWinForms {
 
 			keptIMG = new unsigned char[imgSize2Use];
 
-			if (keepLast) { Copy((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use); applyNeg = true; }
+			if (keepLast) { Copy((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use); }
 
 			else { Copy(org2Use, keptIMG, imgSize2Use); }
 
@@ -1831,7 +1823,7 @@ namespace CLRWinForms {
 		}
 
 		private: System::Void Form1_Load(System::Object^ sender, System::EventArgs^ e)
-		{
+		{	
 
 		}
 
@@ -1898,8 +1890,6 @@ namespace CLRWinForms {
 
 		private: System::Void negativeButton_Click(System::Object^ sender, System::EventArgs^ e) 
 		{	
-			applyNeg = !applyNeg;
-
 			PrepareBMP();
 
 			long startTime, finishTime;
@@ -1907,7 +1897,7 @@ namespace CLRWinForms {
 			if (ASMCheckBox->Checked)
 			{
 				startTime = clock();
-				ASMNegativeIMG((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use, applyNeg);
+				ASMNegativeIMG((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use);
 				finishTime = clock();
 				Negative_asmTotal += finishTime - startTime;
 				Negative_asmCount++;
@@ -1916,7 +1906,7 @@ namespace CLRWinForms {
 			else
 			{
 				startTime = clock();
-				CPPNegativeIMG((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use, applyNeg);
+				CPPNegativeIMG((unsigned char*)bmpData2Use->Scan0.ToPointer(), keptIMG, imgSize2Use);
 				finishTime = clock();
 				Negative_cppTotal += finishTime - startTime;
 				Negative_cppCount++;

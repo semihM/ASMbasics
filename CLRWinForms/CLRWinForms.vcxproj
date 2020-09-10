@@ -165,6 +165,9 @@
   <ItemGroup>
     <Image Include="app.ico" />
     <Image Include="color_picker_tool.jpg" />
+    <Image Include="imgProc.ico" />
+    <Image Include="pen.ico" />
+    <Image Include="picker.ico" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
