@@ -17,7 +17,7 @@ extern "C" void ASMrgb2hsl(float r, float g, float b, unsigned char* hslptr);
 
 extern "C" void ASMColorChangeColorRange(unsigned char* bmp, unsigned char* newColorRGB, unsigned char* ranges, int size);
 
-extern "C" void ASMCoordinates(unsigned int* x_y_o, int ratioIndex,
+extern "C" void ASMCoordinates(int* x_y_o, int ratioIndex,
 							   int whiteW, int whiteH,
 							   int dispW, int dispH,
 							   int boxW, int boxH);
