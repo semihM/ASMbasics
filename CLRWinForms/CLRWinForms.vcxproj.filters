@@ -32,6 +32,9 @@
     <ClInclude Include="asm.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="customs.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CppCLR_WinformsProjekt.cpp">
@@ -68,5 +71,8 @@
     <MASM Include="asm.asm">
       <Filter>Source Files</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
