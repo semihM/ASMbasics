@@ -1,4 +1,4 @@
-# ASMbasics
+# IMG_Proc
 Assembly and C++ codes present at Chris Rose's youtube channel "What's a Creel?" and his book and a 24bit image processing program.
 
 ## Branch Info
