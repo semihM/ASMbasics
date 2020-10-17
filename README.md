@@ -1,5 +1,5 @@
 # IMG_Proc
-Assembly and C++ codes present at Chris Rose's youtube channel "What's a Creel?" and his book and a 24bit image processing program.
+Assembly and C++ codes present at Chris Rose's youtube channel "Creel" and his book and a 24bit image processing program.
 
 ## Branch Info
 This branch is **ONLY** for the further developement of the image processing program.
